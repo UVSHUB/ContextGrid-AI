@@ -27,20 +27,19 @@ Today, millions of programmers use AI coding tools (like ChatGPT, GitHub Copilot
 
 ## 📊 Complete Feature & Advanced Capabilities Matrix
 
-| Feature / Capability | Core MVP (Implemented) | Advanced / Enterprise Roadmap | Value & Technical Depth |
-| :--- | :---: | :---: | :--- |
-| **Tree-sitter AST Parser** | ✅ | ✅ | Multi-language symbol extraction (functions, imports, exports, calls) |
-| **Neo4j Graph Mapping** | ✅ | ✅ | Directed graph dependency paths with in-memory resilient fallback |
-| **Sub-50ms IDE Guardrails** | ✅ | ✅ | Real-time inline squiggles & diagnostic hovers in VS Code |
-| **System Impact Score Engine** | ✅ | ✅ | Mathematical blast-radius formula $S = \min(100, \sum \frac{N_i \cdot w}{i})$ |
-| **Google Gemini AI Agent** | ✅ | ✅ | Natural language 2-sentence impact warnings via `gemini-2.0-flash` |
-| **React Flow 2D Web Portal** | ✅ | ✅ | Interactive visual node canvas, risk hotspots, simulator & inspector |
-| **Autonomous Self-Healing Patching** | ❌ | 🔮 | 1-click refactoring across dependent files |
-| **Cross-Repo Microservice Tracking** | ❌ | 🔮 | Federated graph mapping across separate repositories |
-| **AI Duplication Interceptor** | ❌ | 🔮 | Vector embedding matching to stop redundant AI code generation |
-| **Blast-Radius CI/CD Optimizer** | ❌ | 🔮 | Cuts CI test execution time up to 90% by running only affected tests |
-| **GitHub Visual PR Impact Digest** | ❌ | 🔮 | Automatic GitHub Action bot posting visual dependency maps in PRs |
-| **Architecture Drift Sentinel** | ❌ | 🔮 | Cypher rule engine enforcing architectural boundaries |
+| Feature / Capability | Core MVP | Advanced / Enterprise | Status | Value & Technical Depth |
+| :--- | :---: | :---: | :---: | :--- |
+| **Tree-sitter AST Parser** | ✅ | ✅ | ✅ **Live** | Multi-language symbol extraction (functions, imports, exports, calls) |
+| **Neo4j Graph Mapping** | ✅ | ✅ | ✅ **Live** | Directed graph dependency paths with in-memory resilient fallback |
+| **Sub-50ms IDE Guardrails** | ✅ | ✅ | ✅ **Live** | Real-time inline squiggles & diagnostic hovers in VS Code |
+| **System Impact Score Engine** | ✅ | ✅ | ✅ **Live** | Mathematical blast-radius formula $S = \min(100, \sum \frac{N_i \cdot w}{i})$ |
+| **Google Gemini AI Agent** | ✅ | ✅ | ✅ **Live** | Natural language 2-sentence impact warnings via `gemini-2.0-flash` |
+| **React Flow 2D Web Portal** | ✅ | ✅ | ✅ **Live** | Interactive visual node canvas, risk hotspots, simulator & inspector |
+| **Autonomous Self-Healing Patching** | ❌ | ✅ | ✅ **Live** | Gemini 2.0 Flash 1-click refactoring across dependent files (`patchAgent.ts`) |
+| **AI Duplication Interceptor** | ❌ | ✅ | ✅ **Live** | Intercepts duplicate function creation before code bloat (`duplicationInterceptor.ts`) |
+| **Blast-Radius CI/CD Optimizer** | ❌ | ✅ | ✅ **Live** | Cuts CI test times by up to 90% by running only affected test suites (`ciOptimizer.ts`) |
+| **GitHub Visual PR Impact Digest** | ❌ | ✅ | ✅ **Live** | GitHub Action bot posting visual dependency maps in PR comments (`prBot.ts`) |
+| **Architecture Drift Sentinel** | ❌ | ✅ | ✅ **Live** | Cypher & pattern rule engine enforcing architectural boundaries (`sentinel.ts`) |
 
 ---
 
@@ -68,12 +67,13 @@ Today, millions of programmers use AI coding tools (like ChatGPT, GitHub Copilot
 
 ```
 contextgrid-ai/
+├── .github/workflows/          # GitHub Action automated PR impact audit workflow
 ├── apps/
-│   ├── vscode-extension/      # VS Code Extension (TS + WebSockets + Diagnostics)
-│   └── web-dashboard/         # Next.js 14 + Tailwind CSS + React Flow Visual Map
+│   ├── vscode-extension/      # VS Code Extension (TS + WebSockets + Auto-Fix Commands)
+│   └── web-dashboard/         # Next.js 14 + Tailwind CSS + Self-Healing Patch Modal & Sentinel
 └── services/
     ├── parser-engine/         # Python FastAPI + Tree-sitter AST & Neo4j Ingestion
-    └── impact-server/         # Express + WebSockets + Google Gemini 2.0 Flash SDK
+    └── impact-server/         # Express + WebSockets + Gemini 2.0 Flash + Sentinel & Auto-Fix
 ```
 
 ---

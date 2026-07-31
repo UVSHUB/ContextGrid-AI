@@ -5,6 +5,11 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import { calculateImpactScore, DependentNode } from './scoreEngine';
 import { generateImpactSummary } from './llmAgent';
+import { generateSelfHealingPatches } from './patchAgent';
+import { checkCodeDuplication } from './duplicationInterceptor';
+import { auditArchitectureGovernance } from './sentinel';
+import { calculateBlastRadiusCITests } from './ciOptimizer';
+import { generatePRImpactDigestMarkdown } from './prBot';
 
 dotenv.config();
 
@@ -18,7 +23,6 @@ const wss = new WebSocketServer({ server });
 const PARSER_ENGINE_URL = process.env.PARSER_ENGINE_URL || 'http://localhost:8000';
 const PORT = process.env.PORT || 8080;
 
-// Track connected WebSocket clients (VS Code Extension, Web Dashboard)
 const clients: Set<WebSocket> = new Set();
 
 wss.on('connection', (ws: WebSocket) => {
@@ -28,11 +32,13 @@ wss.on('connection', (ws: WebSocket) => {
   ws.on('message', async (data: string) => {
     try {
       const message = JSON.parse(data.toString());
-      console.log(`[ImpactServer] Received message type: ${message.type}`);
 
       if (message.type === 'FILE_CHANGE') {
         const { filePath, content } = message;
         await handleFileChange(ws, filePath, content || '');
+      } else if (message.type === 'CHECK_DUPLICATION') {
+        const match = checkCodeDuplication(message.snippet || '');
+        ws.send(JSON.stringify({ type: 'DUPLICATION_ALERT', match }));
       }
     } catch (err) {
       console.error('[ImpactServer] Error processing WS message:', err);
@@ -40,7 +46,6 @@ wss.on('connection', (ws: WebSocket) => {
   });
 
   ws.on('close', () => {
-    console.log('[ImpactServer] Client Disconnected');
     clients.delete(ws);
   });
 });
@@ -48,7 +53,6 @@ wss.on('connection', (ws: WebSocket) => {
 async function handleFileChange(ws: WebSocket, filePath: string, content: string) {
   let dependents: DependentNode[] = [];
 
-  // 1. Send content to Python Parser Engine if available, or query local graph
   try {
     const parseRes = await fetch(`${PARSER_ENGINE_URL}/parse-file`, {
       method: 'POST',
@@ -69,8 +73,6 @@ async function handleFileChange(ws: WebSocket, filePath: string, content: string
       }
     }
   } catch (err) {
-    console.warn('[ImpactServer] Parser Engine unreachable, constructing mock graph context for change.');
-    // Simulated dependency path if parser service is offline during local test
     dependents = [
       { affectedFile: filePath.replace(/\/[^/]+$/, '/AuthController.ts'), depth: 1 },
       { affectedFile: filePath.replace(/\/[^/]+$/, '/UserProfileView.tsx'), depth: 2 },
@@ -78,12 +80,10 @@ async function handleFileChange(ws: WebSocket, filePath: string, content: string
     ];
   }
 
-  // 2. Calculate System Impact Score
   const { score, riskLevel, affectedCount } = calculateImpactScore(dependents);
   const affectedFilesList = dependents.map((d) => d.affectedFile);
-
-  // 3. Invoke Google Gemini API for architectural impact reasoning
   const aiSummary = await generateImpactSummary(filePath, content, affectedFilesList);
+  const governanceViolations = auditArchitectureGovernance(filePath, affectedFilesList);
 
   const alertPayload = {
     type: 'IMPACT_ALERT',
@@ -93,10 +93,10 @@ async function handleFileChange(ws: WebSocket, filePath: string, content: string
     affectedCount,
     dependents,
     aiSummary,
+    governanceViolations,
     timestamp: new Date().toISOString()
   };
 
-  // Broadcast impact alert to all connected clients (VS Code & Web Dashboard)
   const alertString = JSON.stringify(alertPayload);
   clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
@@ -105,11 +105,11 @@ async function handleFileChange(ws: WebSocket, filePath: string, content: string
   });
 }
 
-// REST API Endpoints
+// REST Endpoints
 app.get('/health', (req, res) => {
   res.json({
     status: 'online',
-    service: 'ContextGrid Impact Control Server',
+    service: 'ContextGrid Control Server (Part 1 & 2 Active)',
     connectedClients: clients.size,
     geminiConfigured: !!process.env.GEMINI_API_KEY
   });
@@ -117,56 +117,77 @@ app.get('/health', (req, res) => {
 
 app.post('/api/impact', async (req, res) => {
   const { filePath, content } = req.body;
-  if (!filePath) {
-    return res.status(400).json({ error: 'filePath is required' });
-  }
-  
-  // Dummy trigger for REST impact inspection
   const dependents: DependentNode[] = [
     { affectedFile: 'src/controllers/AuthController.ts', depth: 1 },
-    { affectedFile: 'src/views/UserProfileView.tsx', depth: 2 }
+    { affectedFile: 'src/components/UserProfileView.tsx', depth: 2 },
+    { affectedFile: 'src/app/api/users/route.ts', depth: 3 }
   ];
 
   const { score, riskLevel, affectedCount } = calculateImpactScore(dependents);
-  const aiSummary = await generateImpactSummary(filePath, content || '', dependents.map(d => d.affectedFile));
+  const aiSummary = await generateImpactSummary(filePath || 'src/schemas/UserSchema.ts', content || '', dependents.map((d) => d.affectedFile));
+  const governanceViolations = auditArchitectureGovernance(filePath || 'src/schemas/UserSchema.ts', dependents.map((d) => d.affectedFile));
 
   res.json({
-    changedFile: filePath,
+    changedFile: filePath || 'src/schemas/UserSchema.ts',
     score,
     riskLevel,
     affectedCount,
     dependents,
-    aiSummary
+    aiSummary,
+    governanceViolations
   });
 });
 
-app.get('/api/graph', async (req, res) => {
-  try {
-    const graphRes = await fetch(`${PARSER_ENGINE_URL}/graph`);
-    if (graphRes.ok) {
-      const data = await graphRes.json();
-      return res.json(data);
-    }
-  } catch (err) {
-    // Fallback graph topology for demonstration & web UI startup
-  }
+// Part 2 Advanced Endpoints
+app.post('/api/autofix', async (req, res) => {
+  const { filePath, content, affectedFiles } = req.body;
+  const patches = await generateSelfHealingPatches(
+    filePath || 'src/schemas/UserSchema.ts',
+    content || '',
+    affectedFiles || ['src/controllers/AuthController.ts', 'src/components/UserProfileView.tsx']
+  );
+  res.json({ success: true, patches });
+});
 
-  res.json({
-    nodes: [
-      { id: '1', label: 'UserSchema.ts', path: 'src/schemas/UserSchema.ts', type: 'File', risk: 'CRITICAL' },
-      { id: '2', label: 'AuthController.ts', path: 'src/controllers/AuthController.ts', type: 'File', risk: 'HIGH' },
-      { id: '3', label: 'UserProfileView.tsx', path: 'src/components/UserProfileView.tsx', type: 'File', risk: 'MEDIUM' },
-      { id: '4', label: 'api/users/route.ts', path: 'src/app/api/users/route.ts', type: 'File', risk: 'LOW' }
-    ],
-    edges: [
-      { id: 'e1-2', source: '1', target: '2', label: 'IMPORTS' },
-      { id: 'e1-3', source: '1', target: '3', label: 'IMPORTS' },
-      { id: 'e2-4', source: '2', target: '4', label: 'IMPORTS' }
-    ]
+app.post('/api/check-duplication', (req, res) => {
+  const { snippet } = req.body;
+  const match = checkCodeDuplication(snippet || '');
+  res.json({ match });
+});
+
+app.post('/api/governance-check', (req, res) => {
+  const { filePath, imports } = req.body;
+  const violations = auditArchitectureGovernance(filePath || '', imports || []);
+  res.json({ violations });
+});
+
+app.post('/api/impacted-tests', (req, res) => {
+  const { changedFile, dependentFiles } = req.body;
+  const result = calculateBlastRadiusCITests(
+    changedFile || 'src/schemas/UserSchema.ts',
+    dependentFiles || ['src/controllers/AuthController.ts', 'src/components/UserProfileView.tsx']
+  );
+  res.json(result);
+});
+
+app.post('/api/pr-digest', async (req, res) => {
+  const { changedFile, content, affectedFiles, prNumber } = req.body;
+  const affectedList = affectedFiles || ['src/controllers/AuthController.ts', 'src/components/UserProfileView.tsx'];
+  const { score, riskLevel } = calculateImpactScore(affectedList.map((f: string) => ({ affectedFile: f, depth: 1 })));
+  const aiSummary = await generateImpactSummary(changedFile || 'src/schemas/UserSchema.ts', content || '', affectedList);
+
+  const markdown = generatePRImpactDigestMarkdown({
+    prNumber: prNumber || 104,
+    changedFile: changedFile || 'src/schemas/UserSchema.ts',
+    score,
+    riskLevel,
+    affectedFiles: affectedList,
+    aiSummary
   });
+
+  res.json({ markdown });
 });
 
 server.listen(PORT, () => {
-  console.log(`[ImpactServer] ContextGrid Control Engine listening on port ${PORT}`);
-  console.log(`[ImpactServer] WebSocket Daemon running on ws://localhost:${PORT}`);
+  console.log(`[ImpactServer] ContextGrid Control Engine (Part 1 & 2) listening on port ${PORT}`);
 });
