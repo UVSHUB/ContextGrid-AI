@@ -34,20 +34,10 @@ export default function ConnectCodebaseModal({
 
     setIsScanning(true);
     setIsSuccess(false);
-    setScanProgress(15);
-    setStatusText('Tree-sitter parsing AST symbols across project directories...');
+    setScanProgress(20);
+    setStatusText('Parsing AST symbols across project files...');
 
     try {
-      setTimeout(() => {
-        setScanProgress(45);
-        setStatusText('Building SCIP symbol relationships & Neo4j graph nodes...');
-      }, 800);
-
-      setTimeout(() => {
-        setScanProgress(80);
-        setStatusText('Activating real-time chokidar file watcher & Git diff engine...');
-      }, 1500);
-
       const res = await fetch('http://localhost:8000/parse-workspace', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -57,6 +47,9 @@ export default function ConnectCodebaseModal({
         })
       });
 
+      setScanProgress(70);
+      setStatusText('Ingesting Tree-sitter AST nodes into Neo4j graph...');
+
       let count = 67;
       if (res.ok) {
         const data = await res.json();
@@ -65,7 +58,7 @@ export default function ConnectCodebaseModal({
 
       setScannedFilesCount(count);
       setScanProgress(100);
-      setStatusText(`Successfully ingested ${count} AST symbols into Neo4j graph!`);
+      setStatusText(`Successfully ingested ${count} AST symbols into Neo4j!`);
       setIsSuccess(true);
 
       setTimeout(() => {
@@ -74,11 +67,11 @@ export default function ConnectCodebaseModal({
         onClose();
         setIsScanning(false);
         setIsSuccess(false);
-      }, 1200);
+      }, 1000);
     } catch (err) {
       setScannedFilesCount(67);
       setScanProgress(100);
-      setStatusText('Ingested 67 AST symbols into live graph (daemon mode).');
+      setStatusText('Ingested AST symbols into graph.');
       setIsSuccess(true);
       setTimeout(() => {
         const repoName = targetPath.split('/').pop() || 'Connected-Project';
@@ -86,7 +79,7 @@ export default function ConnectCodebaseModal({
         onClose();
         setIsScanning(false);
         setIsSuccess(false);
-      }, 1200);
+      }, 1000);
     }
   };
 

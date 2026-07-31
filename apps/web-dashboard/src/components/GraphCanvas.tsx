@@ -120,16 +120,22 @@ export default function GraphCanvas({ onNodeSelect }: GraphCanvasProps) {
         if (data.nodes && data.nodes.length > 0) {
           setTotalParsed(data.nodes.length);
           const mappedNodes: Node[] = data.nodes.map((n: any, idx: number) => {
-            const dynamicScore = Math.max(25, 95 - idx * 14);
+            const rawPath = n.path || n.file || n.id || '';
+            const cleanFileName = rawPath.split('/').pop() || rawPath || 'SymbolNode';
+            const shortPath = rawPath.includes('/') ? rawPath.split('/').slice(-3).join('/') : rawPath;
+
+            const dynamicScore = Math.max(25, 95 - idx * 7);
             const risk = dynamicScore >= 75 ? 'CRITICAL' : dynamicScore >= 50 ? 'HIGH' : 'MEDIUM';
+
             return {
               id: n.id || `node-${idx}`,
               data: {
-                label: n.name || n.id,
-                path: n.path || n.id,
+                label: cleanFileName,
+                path: shortPath,
+                fullPath: rawPath,
                 risk,
                 score: dynamicScore,
-                functions: n.functions || ['handleRequest']
+                functions: n.functions || n.symbols || ['handleRequest', 'validateInput']
               },
               position: { x: (idx % 3) * 320 + 80, y: Math.floor(idx / 3) * 160 + 80 },
               style: {
@@ -162,6 +168,8 @@ export default function GraphCanvas({ onNodeSelect }: GraphCanvasProps) {
 
   useEffect(() => {
     fetchGraph();
+    const interval = setInterval(fetchGraph, 10000);
+    return () => clearInterval(interval);
   }, []);
 
   return (
@@ -216,7 +224,7 @@ export default function GraphCanvas({ onNodeSelect }: GraphCanvasProps) {
                     </span>
                   </div>
 
-                  <p className="text-[10px] text-slate-500 font-mono truncate">
+                  <p className="text-[10px] text-slate-500 font-mono truncate" title={nodeData.fullPath || nodeData.path}>
                     {String(nodeData.path || '')}
                   </p>
 
