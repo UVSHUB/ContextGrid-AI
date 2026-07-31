@@ -31,14 +31,16 @@ class Neo4jGraphService:
         file_path = parsed_data.get("file_path")
         functions = parsed_data.get("functions", [])
         imports = parsed_data.get("imports", [])
-        calls = parsed_data.get("calls", [])
+
+        fn_names = [f["name"] for f in functions if "name" in f]
+        imp_names = [imp.get("module") for imp in imports if imp.get("module")]
 
         # Update in-memory fallback store
         memory_nodes[file_path] = {
             "path": file_path,
             "type": "File",
-            "functions": [f["name"] for f in functions],
-            "imports": [imp.get("module") for imp in imports if imp.get("module")]
+            "functions": fn_names,
+            "imports": imp_names
         }
 
         for imp in imports:
@@ -87,10 +89,9 @@ class Neo4jGraphService:
 
     def get_downstream_dependents(self, file_path: str, max_depth: int = 4) -> List[Dict[str, Any]]:
         """
-        Traverses Neo4j graph (or in-memory graph) to find files dependent on file_path up to max_depth.
+        Traverses graph store to find files dependent on file_path up to max_depth.
         """
         if not self.driver:
-            # Traversal on in-memory store
             dependents = []
             visited = set()
             queue = [(file_path, 0)]
@@ -102,12 +103,13 @@ class Neo4jGraphService:
                 visited.add(current_file)
 
                 if depth > 0:
+                    node_data = memory_nodes.get(current_file, {})
                     dependents.append({
                         "affectedFile": current_file,
-                        "depth": depth
+                        "depth": depth,
+                        "functions": node_data.get("functions", [])
                     })
 
-                # Find files that import current_file
                 for src_file, node in memory_nodes.items():
                     if current_file in node.get("imports", []) or any(current_file in imp for imp in node.get("imports", [])):
                         if src_file not in visited:
@@ -132,23 +134,36 @@ class Neo4jGraphService:
 
     def get_full_graph(self) -> Dict[str, Any]:
         """
-        Returns nodes and edges of the codebase dependency graph.
+        Returns nodes (with extracted AST functions) and edges of the dependency graph.
         """
         if not self.driver:
             nodes = []
             for k, v in memory_nodes.items():
-                nodes.append({"id": k, "label": k.split("/")[-1], "path": k, "type": "File"})
+                nodes.append({
+                    "id": k,
+                    "label": k.split("/")[-1],
+                    "path": k,
+                    "type": "File",
+                    "functions": v.get("functions", []),
+                    "imports": v.get("imports", [])
+                })
             edges = []
             for idx, e in enumerate(memory_edges):
-                edges.append({"id": f"e-{idx}", "source": e["source"], "target": e["target"], "label": e["type"]})
+                edges.append({
+                    "id": f"e-{idx}",
+                    "source": e["source"],
+                    "target": e["target"],
+                    "label": e["type"]
+                })
             return {"nodes": nodes, "edges": edges}
 
         cypher_query = """
         MATCH (n:File)
+        OPTIONAL MATCH (n)-[:DEFINES]->(fn:Function)
         OPTIONAL MATCH (n)-[r:IMPORTS]->(m:File)
-        RETURN n.path AS source, m.path AS target
+        RETURN n.path AS source, collect(DISTINCT fn.name) AS functions, m.path AS target
         """
-        nodes_set = set()
+        nodes_dict = {}
         edges = []
         with self.driver.session() as session:
             res = session.run(cypher_query)
@@ -156,15 +171,15 @@ class Neo4jGraphService:
             for record in res:
                 src = record["source"]
                 tgt = record["target"]
-                if src:
-                    nodes_set.add(src)
-                if tgt:
-                    nodes_set.add(tgt)
+                funcs = record["functions"] or []
+                if src and src not in nodes_dict:
+                    nodes_dict[src] = {"id": src, "label": src.split("/")[-1], "path": src, "type": "File", "functions": funcs}
+                if tgt and tgt not in nodes_dict:
+                    nodes_dict[tgt] = {"id": tgt, "label": tgt.split("/")[-1], "path": tgt, "type": "File", "functions": []}
                 if src and tgt:
                     idx += 1
                     edges.append({"id": f"e-{idx}", "source": src, "target": tgt, "label": "IMPORTS"})
 
-        nodes = [{"id": p, "label": p.split("/")[-1], "path": p, "type": "File"} for p in nodes_set]
-        return {"nodes": nodes, "edges": edges}
+        return {"nodes": list(nodes_dict.values()), "edges": edges}
 
 graph_service = Neo4jGraphService()

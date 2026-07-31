@@ -23,9 +23,10 @@ const initialNodes: Node[] = [
     data: {
       label: 'authController.ts',
       path: 'backend/src/controllers/authController.ts',
+      fullPath: 'backend/src/controllers/authController.ts',
       risk: 'CRITICAL',
       score: 92,
-      functions: ['loginUser', 'verifyToken', 'logout']
+      functions: ['loginUser', 'verifyToken', 'logout', 'refreshJWT']
     },
     position: { x: 80, y: 120 },
     style: {
@@ -43,9 +44,10 @@ const initialNodes: Node[] = [
     data: {
       label: 'internActivityController.ts',
       path: 'backend/src/controllers/internActivityController.ts',
+      fullPath: 'backend/src/controllers/internActivityController.ts',
       risk: 'HIGH',
       score: 68,
-      functions: ['logActivity', 'getStats']
+      functions: ['logActivity', 'getStats', 'exportLogbook']
     },
     position: { x: 420, y: 60 },
     style: {
@@ -63,9 +65,10 @@ const initialNodes: Node[] = [
     data: {
       label: 'taskController.ts',
       path: 'backend/src/controllers/taskController.ts',
+      fullPath: 'backend/src/controllers/taskController.ts',
       risk: 'HIGH',
       score: 54,
-      functions: ['createTask', 'updateTaskStatus']
+      functions: ['createTask', 'updateTaskStatus', 'deleteTask']
     },
     position: { x: 420, y: 220 },
     style: {
@@ -83,9 +86,10 @@ const initialNodes: Node[] = [
     data: {
       label: 'services/ai.ts',
       path: 'backend/src/services/ai.ts',
+      fullPath: 'backend/src/services/ai.ts',
       risk: 'MEDIUM',
       score: 38,
-      functions: ['generateImpactAnalysis']
+      functions: ['generateImpactAnalysis', 'runGeminiPipeline']
     },
     position: { x: 760, y: 140 },
     style: {
@@ -127,6 +131,10 @@ export default function GraphCanvas({ onNodeSelect }: GraphCanvasProps) {
             const dynamicScore = Math.max(25, 95 - idx * 7);
             const risk = dynamicScore >= 75 ? 'CRITICAL' : dynamicScore >= 50 ? 'HIGH' : 'MEDIUM';
 
+            const extractedFunctions = Array.isArray(n.functions) && n.functions.length > 0
+              ? n.functions
+              : [cleanFileName.replace(/\.[^/.]+$/, ''), 'handleRequest'];
+
             return {
               id: n.id || `node-${idx}`,
               data: {
@@ -135,7 +143,7 @@ export default function GraphCanvas({ onNodeSelect }: GraphCanvasProps) {
                 fullPath: rawPath,
                 risk,
                 score: dynamicScore,
-                functions: n.functions || n.symbols || ['handleRequest', 'validateInput']
+                functions: extractedFunctions
               },
               position: { x: (idx % 3) * 320 + 80, y: Math.floor(idx / 3) * 160 + 80 },
               style: {
@@ -195,6 +203,7 @@ export default function GraphCanvas({ onNodeSelect }: GraphCanvasProps) {
       <ReactFlow
         nodes={nodes.map((node) => {
           const nodeData = node.data as any;
+          const funcs = nodeData.functions || [];
           return {
             ...node,
             data: {
@@ -229,7 +238,7 @@ export default function GraphCanvas({ onNodeSelect }: GraphCanvasProps) {
                   </p>
 
                   <div className="pt-1.5 border-t border-slate-100 flex items-center justify-between text-[10px] font-mono text-slate-500">
-                    <span>{(nodeData.functions || []).length} AST Functions</span>
+                    <span>{funcs.length} AST Functions</span>
                     <span className="text-indigo-600 font-semibold group-hover:underline">Inspect →</span>
                   </div>
                 </div>

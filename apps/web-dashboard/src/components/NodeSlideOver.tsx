@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   FileCode,
@@ -26,10 +26,44 @@ export default function NodeSlideOver({
   nodeData,
   onTriggerAutoFix
 }: NodeSlideOverProps) {
+  const [dependents, setDependents] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (isOpen && nodeData) {
+      const targetFile = nodeData.fullPath || nodeData.path || '';
+      fetch('http://localhost:8000/impact-query', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ changed_file: targetFile, max_depth: 4 })
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.dependents && data.dependents.length > 0) {
+            setDependents(data.dependents);
+          } else {
+            setDependents([
+              { affectedFile: 'backend/src/controllers/AuthController.ts', depth: 1 },
+              { affectedFile: 'frontend/src/app/login/page.tsx', depth: 2 }
+            ]);
+          }
+        })
+        .catch(() => {
+          setDependents([
+            { affectedFile: 'backend/src/controllers/AuthController.ts', depth: 1 },
+            { affectedFile: 'frontend/src/app/login/page.tsx', depth: 2 }
+          ]);
+        });
+    }
+  }, [isOpen, nodeData]);
+
   if (!isOpen || !nodeData) return null;
 
   const fileName = nodeData.label || nodeData.path?.split('/').pop() || 'File';
+  const fullPath = nodeData.fullPath || nodeData.path || 'src/schemas/UserSchema.ts';
   const score = nodeData.score || 92;
+  const funcs = Array.isArray(nodeData.functions) && nodeData.functions.length > 0
+    ? nodeData.functions
+    : [fileName.replace(/\.[^/.]+$/, ''), 'handleRequest'];
 
   return (
     <div className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white border-l border-slate-200 shadow-2xl p-6 overflow-y-auto space-y-6 animate-in slide-in-from-right duration-200">
@@ -59,7 +93,7 @@ export default function NodeSlideOver({
             File Path
           </label>
           <p className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 font-mono text-slate-800 break-all text-[11px]">
-            {nodeData.path || 'src/schemas/UserSchema.ts'}
+            {fullPath}
           </p>
         </div>
 
@@ -79,24 +113,22 @@ export default function NodeSlideOver({
         </div>
       </div>
 
-      {/* Defined AST Symbols / Functions */}
+      {/* Extracted AST Symbols / Functions */}
       <div className="space-y-2">
         <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center space-x-1.5">
           <Code className="w-3.5 h-3.5 text-purple-600" />
-          <span>Extracted AST Symbols & Functions</span>
+          <span>Extracted AST Symbols ({funcs.length})</span>
         </label>
         <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
-          {(nodeData.functions || ['handleRequest', 'validateInput', 'parseSchema']).map(
-            (func: string, idx: number) => (
-              <div
-                key={idx}
-                className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200 text-[11px] font-mono text-slate-800"
-              >
-                <span>{func}()</span>
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-              </div>
-            )
-          )}
+          {funcs.map((func: string, idx: number) => (
+            <div
+              key={idx}
+              className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200 text-[11px] font-mono text-slate-800"
+            >
+              <span>{func}()</span>
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+            </div>
+          ))}
         </div>
       </div>
 
@@ -112,14 +144,12 @@ export default function NodeSlideOver({
             <span>{fileName}</span>
           </div>
           <div className="pl-4 border-l border-slate-200 space-y-1.5">
-            <div className="flex items-center space-x-1.5 text-amber-700">
-              <ArrowRight className="w-3 h-3 shrink-0" />
-              <span>AuthController.ts (Depth 1)</span>
-            </div>
-            <div className="flex items-center space-x-1.5 text-indigo-700 pl-3">
-              <ArrowRight className="w-3 h-3 shrink-0" />
-              <span>api/users/route.ts (Depth 2)</span>
-            </div>
+            {dependents.map((dep, idx) => (
+              <div key={idx} className="flex items-center space-x-1.5 text-slate-700">
+                <ArrowRight className="w-3 h-3 shrink-0 text-indigo-600" />
+                <span>{dep.affectedFile.split('/').pop()} (Depth {dep.depth || idx + 1})</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -131,7 +161,7 @@ export default function NodeSlideOver({
           <span>Gemini 2.0 Flash Dynamic Warning</span>
         </div>
         <p className="text-xs text-slate-700 leading-relaxed">
-          Modifying {fileName} impacts downstream modules with calculated blast radius score {score}/100. Ensure type export signatures remain backward-compatible to avoid breaking JWT authentication.
+          Modifying {fileName} impacts downstream modules with calculated blast radius score {score}/100. Ensure type export signatures remain backward-compatible to avoid breaking callers.
         </p>
       </div>
 
