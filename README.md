@@ -25,6 +25,25 @@ Today, millions of programmers use AI coding tools (like ChatGPT, GitHub Copilot
 
 ---
 
+## 📊 Complete Feature & Advanced Capabilities Matrix
+
+| Feature / Capability | Core MVP (Implemented) | Advanced / Enterprise Roadmap | Value & Technical Depth |
+| :--- | :---: | :---: | :--- |
+| **Tree-sitter AST Parser** | ✅ | ✅ | Multi-language symbol extraction (functions, imports, exports, calls) |
+| **Neo4j Graph Mapping** | ✅ | ✅ | Directed graph dependency paths with in-memory resilient fallback |
+| **Sub-50ms IDE Guardrails** | ✅ | ✅ | Real-time inline squiggles & diagnostic hovers in VS Code |
+| **System Impact Score Engine** | ✅ | ✅ | Mathematical blast-radius formula $S = \min(100, \sum \frac{N_i \cdot w}{i})$ |
+| **Google Gemini AI Agent** | ✅ | ✅ | Natural language 2-sentence impact warnings via `gemini-2.0-flash` |
+| **React Flow 2D Web Portal** | ✅ | ✅ | Interactive visual node canvas, risk hotspots, simulator & inspector |
+| **Autonomous Self-Healing Patching** | ❌ | 🔮 | 1-click refactoring across dependent files |
+| **Cross-Repo Microservice Tracking** | ❌ | 🔮 | Federated graph mapping across separate repositories |
+| **AI Duplication Interceptor** | ❌ | 🔮 | Vector embedding matching to stop redundant AI code generation |
+| **Blast-Radius CI/CD Optimizer** | ❌ | 🔮 | Cuts CI test execution time up to 90% by running only affected tests |
+| **GitHub Visual PR Impact Digest** | ❌ | 🔮 | Automatic GitHub Action bot posting visual dependency maps in PRs |
+| **Architecture Drift Sentinel** | ❌ | 🔮 | Cypher rule engine enforcing architectural boundaries |
+
+---
+
 ## 💡 How ContextGrid AI Works (Step-by-Step)
 
 ```
@@ -39,17 +58,9 @@ Today, millions of programmers use AI coding tools (like ChatGPT, GitHub Copilot
 ```
 
 - **Live System Mapping**: When a team connects a project to ContextGrid AI, it automatically creates a dynamic visual map showing how every file, function, and database query depends on one another using **Tree-sitter AST parsing** and **Neo4j graph storage**.
-- **Real-Time Guardrails**: As a developer writes code (or asks an AI assistant to generate code), ContextGrid AI sits silently in the background streaming diffs to an Express & WebSocket control engine.
-- **Instant Early Warnings (Google Gemini 2.5 Flash)**: If a change risks breaking another part of the system, ContextGrid AI pops up an immediate, friendly alert directly in the developer's code editor with a 2-sentence architectural risk summary before they even save or share their work.
-- **Visual PR Map**: Project leads get a clean visual flow chart powered by **Next.js 14 & React Flow** showing exactly which parts of the application were touched, eliminating the need to read hundreds of lines of confusing diffs.
-
----
-
-## 🌟 Why ContextGrid AI is Unique & Valuable
-
-- **Prevents Bugs Before They Happen**: Traditional tools test for bugs after code is submitted. ContextGrid AI alerts developers while they are typing.
-- **Complements AI Coding Tools**: We don't replace Cursor or Copilot—we make them safer to use in professional team environments.
-- **Stops Code Duplication**: If an AI assistant tries to write a function that someone on the team already created last month, ContextGrid AI flags it.
+- **Real-Time Guardrails**: As a developer writes code (or asks an AI assistant to generate code), ContextGrid AI sits silently in the background streaming diffs over WebSockets.
+- **Instant Early Warnings (Google Gemini API)**: If a change risks breaking another part of the system, ContextGrid AI pops up an immediate, friendly alert directly in the developer's code editor with a 2-sentence architectural risk summary before they save or commit.
+- **Visual Portal**: Project leads get a clean visual flow chart powered by **Next.js 14 & React Flow** showing exactly which parts of the application were touched.
 
 ---
 
@@ -62,7 +73,7 @@ contextgrid-ai/
 │   └── web-dashboard/         # Next.js 14 + Tailwind CSS + React Flow Visual Map
 └── services/
     ├── parser-engine/         # Python FastAPI + Tree-sitter AST & Neo4j Ingestion
-    └── impact-server/         # Express + WebSockets + Google Gemini 2.5 Flash SDK
+    └── impact-server/         # Express + WebSockets + Google Gemini 2.0 Flash SDK
 ```
 
 ---
@@ -73,7 +84,7 @@ contextgrid-ai/
 - Node.js v18+
 - Python 3.10+
 - Docker (Optional: for local Neo4j container `docker run -d -p 7474:7474 -p 7687:7687 -e NEO4J_AUTH=neo4j/password neo4j:latest`)
-- `GEMINI_API_KEY` from Google AI Studio
+- `GEMINI_API_KEY` in `services/impact-server/.env`
 
 ### 2. Start Services
 
@@ -86,7 +97,6 @@ python3 -m uvicorn main:app --reload --port 8000
 **Start Impact Control Server:**
 ```bash
 cd services/impact-server
-export GEMINI_API_KEY="your-gemini-api-key"
 npm run dev
 ```
 
@@ -96,11 +106,3 @@ cd apps/web-dashboard
 npm run dev
 ```
 Open `http://localhost:3000` in your browser.
-
----
-
-## 👥 Target Audience
-
-- **Software Developers & Freelancers**: Write and generate code confidently without worrying about breaking hidden dependencies.
-- **Senior Tech Leads & CTOs**: Save up to 40% of code review time and prevent costly outages caused by accidental breaking changes.
-- **Digital Agencies & Software Firms**: Onboard new junior developers faster without risking client project stability.
