@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { AlertTriangle, ShieldAlert, Sparkles, Clock, FileCode } from 'lucide-react';
 
 export interface AlertItem {
@@ -19,6 +19,12 @@ interface AlertListProps {
 }
 
 export default function AlertList({ alerts, onSelectAlert }: AlertListProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const getRiskBadge = (risk: string) => {
     switch (risk) {
       case 'CRITICAL':
@@ -29,6 +35,15 @@ export default function AlertList({ alerts, onSelectAlert }: AlertListProps) {
         return 'bg-blue-500/20 text-blue-400 border-blue-500/40';
       default:
         return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40';
+    }
+  };
+
+  const formatTimestamp = (ts: string) => {
+    if (!mounted) return 'Just now';
+    try {
+      return new Date(ts).toLocaleTimeString();
+    } catch (e) {
+      return 'Just now';
     }
   };
 
@@ -90,9 +105,9 @@ export default function AlertList({ alerts, onSelectAlert }: AlertListProps) {
                   <AlertTriangle className="w-3 h-3 text-amber-400" />
                   <span>Affects {alert.affectedCount} downstream file(s)</span>
                 </span>
-                <span className="flex items-center space-x-1 text-slate-500">
+                <span className="flex items-center space-x-1 text-slate-500" suppressHydrationWarning>
                   <Clock className="w-3 h-3" />
-                  <span>{new Date(alert.timestamp).toLocaleTimeString()}</span>
+                  <span suppressHydrationWarning>{formatTimestamp(alert.timestamp)}</span>
                 </span>
               </div>
             </div>
