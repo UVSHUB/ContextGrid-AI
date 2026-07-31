@@ -1,11 +1,12 @@
 import * as vscode from 'vscode';
 import { ContextGridWSClient } from './websocketClient';
+import { installPreCommitHook } from './gitHook';
 
 let client: ContextGridWSClient | null = null;
 const diagnosticCollection = vscode.languages.createDiagnosticCollection('contextgrid');
 
 export function activate(context: vscode.ExtensionContext) {
-  console.log('ContextGrid AI Enterprise Extension Activated');
+  console.log('ContextGrid AI Full Suite Extension Activated');
 
   client = new ContextGridWSClient(diagnosticCollection);
   client.connect();
@@ -70,6 +71,15 @@ export function activate(context: vscode.ExtensionContext) {
     }
   });
 
+  const installGitHookCommand = vscode.commands.registerCommand('contextgrid.installPreCommitHook', () => {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (workspaceFolders && workspaceFolders.length > 0) {
+      installPreCommitHook(workspaceFolders[0].uri.fsPath);
+    } else {
+      vscode.window.showErrorMessage('ContextGrid AI: Open a workspace folder first to install Git pre-commit hook.');
+    }
+  });
+
   const changeListener = vscode.workspace.onDidChangeTextDocument((event) => {
     const lang = event.document.languageId;
     if (['typescript', 'javascript', 'typescriptreact', 'javascriptreact'].includes(lang)) {
@@ -82,7 +92,14 @@ export function activate(context: vscode.ExtensionContext) {
     }
   });
 
-  context.subscriptions.push(refreshCommand, autoFixCommand, checkDuplicationCommand, changeListener, diagnosticCollection);
+  context.subscriptions.push(
+    refreshCommand,
+    autoFixCommand,
+    checkDuplicationCommand,
+    installGitHookCommand,
+    changeListener,
+    diagnosticCollection
+  );
 }
 
 export function deactivate() {

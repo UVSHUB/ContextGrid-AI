@@ -7,11 +7,12 @@ import glob
 
 from parser import parse_code_file
 from graph_builder import graph_service
+from diff_parser import extract_ast_diff
 
 app = FastAPI(
     title="ContextGrid AI - AST Parser Engine",
-    version="1.0.0",
-    description="Tree-sitter AST parser and Neo4j graph dependency engine"
+    version="2.0.0",
+    description="Tree-sitter AST parser, AST Symbol Delta extractor, and Neo4j graph dependency engine"
 )
 
 app.add_middleware(
@@ -34,11 +35,16 @@ class ImpactQueryRequest(BaseModel):
     changed_file: str
     max_depth: Optional[int] = 4
 
+class ASTDiffRequest(BaseModel):
+    file_path: str
+    old_code: str
+    new_code: str
+
 @app.get("/health")
 def health_check():
     return {
         "status": "online",
-        "service": "ContextGrid Parser Engine",
+        "service": "ContextGrid Parser Engine (v2.0 AST Delta Active)",
         "neo4j_connected": graph_service.driver is not None
     }
 
@@ -54,6 +60,14 @@ def parse_file_endpoint(req: ParseFileRequest):
         "success": True,
         "parsed": parsed_data,
         "graph_ingest": ingest_res
+    }
+
+@app.post("/parse-ast-diff")
+def parse_ast_diff_endpoint(req: ASTDiffRequest):
+    ast_delta = extract_ast_diff(req.old_code, req.new_code, req.file_path)
+    return {
+        "success": True,
+        "ast_delta": ast_delta
     }
 
 @app.post("/parse-workspace")

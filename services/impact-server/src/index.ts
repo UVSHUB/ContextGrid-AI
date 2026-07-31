@@ -10,6 +10,9 @@ import { checkCodeDuplication } from './duplicationInterceptor';
 import { auditArchitectureGovernance } from './sentinel';
 import { calculateBlastRadiusCITests } from './ciOptimizer';
 import { generatePRImpactDigestMarkdown } from './prBot';
+import { WorkspaceGitWatcher } from './gitWatcher';
+import { runGeminiReasoningPipeline } from './llmReasoning';
+import { handleGitHubWebhook } from './githubBot';
 
 dotenv.config();
 
@@ -24,6 +27,18 @@ const PARSER_ENGINE_URL = process.env.PARSER_ENGINE_URL || 'http://localhost:800
 const PORT = process.env.PORT || 8080;
 
 const clients: Set<WebSocket> = new Set();
+
+// Start Workspace Live Git Watcher
+const gitWatcher = new WorkspaceGitWatcher(process.cwd());
+gitWatcher.startWatching((deltaPayload) => {
+  console.log(`[GitWatcher] Broadcast Git Delta: ${deltaPayload.changedFile} (${deltaPayload.source})`);
+  const deltaString = JSON.stringify(deltaPayload);
+  clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(deltaString);
+    }
+  });
+});
 
 wss.on('connection', (ws: WebSocket) => {
   console.log('[ImpactServer] New Client Connected via WebSocket');
@@ -109,11 +124,14 @@ async function handleFileChange(ws: WebSocket, filePath: string, content: string
 app.get('/health', (req, res) => {
   res.json({
     status: 'online',
-    service: 'ContextGrid Control Server (Part 1 & 2 Active)',
+    service: 'ContextGrid Control Server (v2.0 Full Integration Active)',
     connectedClients: clients.size,
     geminiConfigured: !!process.env.GEMINI_API_KEY
   });
 });
+
+// GitHub PR Webhook Gateway
+app.post('/api/github/webhook', handleGitHubWebhook);
 
 app.post('/api/impact', async (req, res) => {
   const { filePath, content } = req.body;
@@ -138,7 +156,6 @@ app.post('/api/impact', async (req, res) => {
   });
 });
 
-// Part 2 Advanced Endpoints
 app.post('/api/autofix', async (req, res) => {
   const { filePath, content, affectedFiles } = req.body;
   const patches = await generateSelfHealingPatches(
@@ -189,5 +206,5 @@ app.post('/api/pr-digest', async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`[ImpactServer] ContextGrid Control Engine (Part 1 & 2) listening on port ${PORT}`);
+  console.log(`[ImpactServer] ContextGrid Control Engine listening on port ${PORT}`);
 });
