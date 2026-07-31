@@ -1,0 +1,15 @@
+{
+  "name": "contextgrid-ai-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ContextGrid AI - Real-time architectural impact analysis using Gemini 2.5 Flash & Tree-sitter graph reasoning",
+  "scripts": {
+    "dev:impact-server": "pnpm --filter contextgrid-impact-server run dev",
+    "dev:web-dashboard": "pnpm --filter contextgrid-web-dashboard run dev",
+    "build": "pnpm --filter contextgrid-impact-server run build && pnpm --filter contextgrid-web-dashboard run build",
+    "start": "pnpm --filter contextgrid-impact-server run start"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
