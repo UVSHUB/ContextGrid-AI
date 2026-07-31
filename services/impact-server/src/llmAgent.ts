@@ -6,13 +6,15 @@ const apiKey = process.env.GEMINI_API_KEY;
 if (apiKey) {
   try {
     ai = new GoogleGenAI({ apiKey });
-    console.log('[llmAgent] Google Gen AI SDK initialized with model gemini-2.5-flash.');
+    console.log('[llmAgent] Google Gen AI SDK initialized.');
   } catch (err) {
     console.warn('[llmAgent] Failed to initialize Google Gen AI SDK:', err);
   }
 } else {
   console.warn('[llmAgent] GEMINI_API_KEY is not set. Local fallback AI reasoning will be used.');
 }
+
+const MODELS_TO_TRY = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
 
 export async function generateImpactSummary(
   changedFile: string,
@@ -37,25 +39,28 @@ Provide a concise 2-sentence summary warning explaining:
   `;
 
   if (ai) {
-    try {
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-        config: {
-          temperature: 0.2,
-          maxOutputTokens: 150,
-        }
-      });
+    for (const modelName of MODELS_TO_TRY) {
+      try {
+        const response = await ai.models.generateContent({
+          model: modelName,
+          contents: prompt,
+          config: {
+            temperature: 0.2,
+            maxOutputTokens: 150,
+          }
+        });
 
-      if (response && response.text) {
-        return response.text.trim();
+        if (response && response.text) {
+          console.log(`[llmAgent] Successfully generated summary using ${modelName}`);
+          return response.text.trim();
+        }
+      } catch (error: any) {
+        console.warn(`[llmAgent] Model ${modelName} call attempted: ${error?.message || error}`);
       }
-    } catch (error) {
-      console.error('[llmAgent] Gemini API Call Error:', error);
     }
   }
 
-  // Resilient ContextGrid AI summary fallback when API key is unconfigured or call fails
+  // Resilient ContextGrid AI summary fallback when API call fails or key is unconfigured
   const count = affectedFiles.length;
   const fileName = changedFile.split('/').pop() || changedFile;
   return `Modifying ${fileName} impacts ${count} downstream module(s) (${affectedFiles.slice(0, 3).join(', ')}${count > 3 ? '...' : ''}). Ensure export signatures and schema type definitions remain backward compatible to avoid unexpected runtime errors.`;
