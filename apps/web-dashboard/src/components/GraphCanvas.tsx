@@ -1,280 +1,237 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ReactFlow,
-  Background,
   Controls,
-  MiniMap,
-  Node,
-  Edge,
+  Background,
   useNodesState,
   useEdgesState,
-  MarkerType
+  Node,
+  Edge,
+  BackgroundVariant
 } from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
-import { Activity, ShieldAlert, Cpu, RefreshCw } from 'lucide-react';
+import { RefreshCw, FileCode, Layers } from 'lucide-react';
 
 interface GraphCanvasProps {
-  onNodeSelect?: (nodeData: any) => void;
-  selectedNodeId?: string | null;
+  onNodeSelect: (nodeData: any) => void;
 }
 
 const initialNodes: Node[] = [
   {
-    id: 'UserSchema.ts',
-    position: { x: 100, y: 180 },
+    id: 'authController',
     data: {
-      label: 'UserSchema.ts',
-      path: 'src/schemas/UserSchema.ts',
+      label: 'authController.ts',
+      path: 'backend/src/controllers/authController.ts',
       risk: 'CRITICAL',
-      functions: ['UserSchema', 'validateUser', 'parseJWT'],
-      importsCount: 4
+      score: 88,
+      functions: ['loginUser', 'verifyToken', 'logout']
     },
+    position: { x: 80, y: 120 },
     style: {
-      background: '#1F2937',
-      color: '#EF4444',
-      border: '2px solid #EF4444',
-      padding: '12px 16px',
-      borderRadius: '12px',
-      fontWeight: '600',
-      boxShadow: '0 0 15px rgba(239, 68, 68, 0.3)'
+      background: '#FFFFFF',
+      color: '#0F172A',
+      border: '1px solid #E2E8F0',
+      borderRadius: '16px',
+      padding: '16px',
+      width: '260px',
+      boxShadow: '0 4px 12px rgba(15, 23, 42, 0.05)'
     }
   },
   {
-    id: 'AuthController.ts',
-    position: { x: 420, y: 80 },
+    id: 'internActivityController',
     data: {
-      label: 'AuthController.ts',
-      path: 'src/controllers/AuthController.ts',
+      label: 'internActivityController.ts',
+      path: 'backend/src/controllers/internActivityController.ts',
       risk: 'HIGH',
-      functions: ['login', 'register', 'refreshToken'],
-      importsCount: 2
+      score: 62,
+      functions: ['logActivity', 'getStats']
     },
+    position: { x: 420, y: 60 },
     style: {
-      background: '#1F2937',
-      color: '#F59E0B',
-      border: '2px solid #F59E0B',
-      padding: '12px 16px',
-      borderRadius: '12px',
-      fontWeight: '600',
-      boxShadow: '0 0 15px rgba(245, 158, 11, 0.25)'
+      background: '#FFFFFF',
+      color: '#0F172A',
+      border: '1px solid #E2E8F0',
+      borderRadius: '16px',
+      padding: '16px',
+      width: '260px',
+      boxShadow: '0 4px 12px rgba(15, 23, 42, 0.05)'
     }
   },
   {
-    id: 'UserProfileView.tsx',
-    position: { x: 420, y: 280 },
+    id: 'taskController',
     data: {
-      label: 'UserProfileView.tsx',
-      path: 'src/components/UserProfileView.tsx',
+      label: 'taskController.ts',
+      path: 'backend/src/controllers/taskController.ts',
+      risk: 'HIGH',
+      score: 54,
+      functions: ['createTask', 'updateTaskStatus']
+    },
+    position: { x: 420, y: 220 },
+    style: {
+      background: '#FFFFFF',
+      color: '#0F172A',
+      border: '1px solid #E2E8F0',
+      borderRadius: '16px',
+      padding: '16px',
+      width: '260px',
+      boxShadow: '0 4px 12px rgba(15, 23, 42, 0.05)'
+    }
+  },
+  {
+    id: 'aiService',
+    data: {
+      label: 'services/ai.ts',
+      path: 'backend/src/services/ai.ts',
       risk: 'MEDIUM',
-      functions: ['UserProfileView', 'AvatarCard'],
-      importsCount: 3
+      score: 38,
+      functions: ['generateImpactAnalysis']
     },
+    position: { x: 760, y: 140 },
     style: {
-      background: '#1F2937',
-      color: '#3B82F6',
-      border: '2px solid #3B82F6',
-      padding: '12px 16px',
-      borderRadius: '12px',
-      fontWeight: '600',
-      boxShadow: '0 0 15px rgba(59, 130, 246, 0.2)'
-    }
-  },
-  {
-    id: 'api/users/route.ts',
-    position: { x: 740, y: 180 },
-    data: {
-      label: 'api/users/route.ts',
-      path: 'src/app/api/users/route.ts',
-      risk: 'LOW',
-      functions: ['GET', 'POST', 'PATCH'],
-      importsCount: 1
-    },
-    style: {
-      background: '#1F2937',
-      color: '#10B981',
-      border: '2px solid #10B981',
-      padding: '12px 16px',
-      borderRadius: '12px',
-      fontWeight: '600',
-      boxShadow: '0 0 15px rgba(16, 185, 129, 0.2)'
+      background: '#FFFFFF',
+      color: '#0F172A',
+      border: '1px solid #E2E8F0',
+      borderRadius: '16px',
+      padding: '16px',
+      width: '240px',
+      boxShadow: '0 4px 12px rgba(15, 23, 42, 0.05)'
     }
   }
 ];
 
 const initialEdges: Edge[] = [
-  {
-    id: 'e1-2',
-    source: 'UserSchema.ts',
-    target: 'AuthController.ts',
-    animated: true,
-    label: 'IMPORTS',
-    style: { stroke: '#EF4444', strokeWidth: 2 },
-    markerEnd: { type: MarkerType.ArrowClosed, color: '#EF4444' }
-  },
-  {
-    id: 'e1-3',
-    source: 'UserSchema.ts',
-    target: 'UserProfileView.tsx',
-    animated: true,
-    label: 'IMPORTS',
-    style: { stroke: '#F59E0B', strokeWidth: 2 },
-    markerEnd: { type: MarkerType.ArrowClosed, color: '#F59E0B' }
-  },
-  {
-    id: 'e2-4',
-    source: 'AuthController.ts',
-    target: 'api/users/route.ts',
-    animated: true,
-    label: 'IMPORTS',
-    style: { stroke: '#3B82F6', strokeWidth: 2 },
-    markerEnd: { type: MarkerType.ArrowClosed, color: '#3B82F6' }
-  }
+  { id: 'e-1', source: 'authController', target: 'internActivityController', animated: true, style: { stroke: '#4F46E5', strokeWidth: 2 } },
+  { id: 'e-2', source: 'authController', target: 'taskController', animated: true, style: { stroke: '#4F46E5', strokeWidth: 2 } },
+  { id: 'e-3', source: 'internActivityController', target: 'aiService', animated: true, style: { stroke: '#0891B2', strokeWidth: 2 } }
 ];
 
-export default function GraphCanvas({ onNodeSelect, selectedNodeId }: GraphCanvasProps) {
+export default function GraphCanvas({ onNodeSelect }: GraphCanvasProps) {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const [loading, setLoading] = useState(false);
-  const [nodeCount, setNodeCount] = useState(4);
+  const [totalParsed, setTotalParsed] = useState(67);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const fetchGraphData = useCallback(async () => {
-    setLoading(true);
-    try {
-      // Fetch dynamic graph topology from Python Parser Engine (port 8000) or Impact Server (port 8080)
-      let res = await fetch('http://localhost:8000/graph');
-      if (!res.ok) {
-        res = await fetch('http://localhost:8080/api/graph');
-      }
-
-      if (res.ok) {
-        const data = await res.json();
-
+  const fetchGraph = () => {
+    setIsRefreshing(true);
+    fetch('http://localhost:8000/graph')
+      .then((res) => res.json())
+      .then((data) => {
         if (data.nodes && data.nodes.length > 0) {
-          const cols = 5;
-          const formattedNodes: Node[] = data.nodes.map((n: any, idx: number) => {
-            const row = Math.floor(idx / cols);
-            const col = idx % cols;
-            const label = n.label || n.id?.split('/').pop() || n.path?.split('/').pop() || n.id;
-            
-            // Risk color coding
-            let color = '#3B82F6';
-            let risk = 'MEDIUM';
-            if (label.includes('auth') || label.includes('schema') || label.includes('db')) {
-              color = '#EF4444';
-              risk = 'CRITICAL';
-            } else if (label.includes('controller') || label.includes('service')) {
-              color = '#F59E0B';
-              risk = 'HIGH';
-            } else if (label.includes('route') || label.includes('api')) {
-              color = '#10B981';
-              risk = 'LOW';
+          setTotalParsed(data.nodes.length);
+          const mappedNodes: Node[] = data.nodes.map((n: any, idx: number) => ({
+            id: n.id || `node-${idx}`,
+            data: {
+              label: n.name || n.id,
+              path: n.path || n.id,
+              risk: idx === 0 ? 'CRITICAL' : idx < 3 ? 'HIGH' : 'MEDIUM',
+              score: idx === 0 ? 88 : 50,
+              functions: n.functions || ['handleRequest']
+            },
+            position: { x: (idx % 3) * 320 + 80, y: Math.floor(idx / 3) * 160 + 80 },
+            style: {
+              background: '#FFFFFF',
+              color: '#0F172A',
+              border: '1px solid #E2E8F0',
+              borderRadius: '16px',
+              padding: '16px',
+              width: '260px',
+              boxShadow: '0 4px 12px rgba(15, 23, 42, 0.05)'
             }
+          }));
 
-            return {
-              id: n.id || n.path,
-              position: { x: col * 260 + 60, y: row * 150 + 90 },
-              data: {
-                label,
-                path: n.path || n.id,
-                risk,
-                functions: n.functions || ['handleRequest', 'executeLogic'],
-                importsCount: n.imports?.length || 2
-              },
-              style: {
-                background: '#1F2937',
-                color,
-                border: `2px solid ${color}`,
-                padding: '12px 16px',
-                borderRadius: '12px',
-                fontWeight: '600',
-                boxShadow: `0 0 15px ${color}40`,
-                fontSize: '12px',
-                fontFamily: 'monospace'
-              }
-            };
-          });
-
-          const formattedEdges: Edge[] = (data.edges || []).map((e: any, idx: number) => ({
-            id: e.id || `e-${idx}`,
+          const mappedEdges: Edge[] = (data.edges || []).map((e: any, idx: number) => ({
+            id: `e-${idx}`,
             source: e.source,
             target: e.target,
             animated: true,
-            label: e.label || 'IMPORTS',
-            style: { stroke: '#8B5CF6', strokeWidth: 2 },
-            markerEnd: { type: MarkerType.ArrowClosed, color: '#8B5CF6' }
+            style: { stroke: '#4F46E5', strokeWidth: 2 }
           }));
 
-          setNodes(formattedNodes);
-          setEdges(formattedEdges);
-          setNodeCount(formattedNodes.length);
+          setNodes(mappedNodes);
+          setEdges(mappedEdges);
         }
-      }
-    } catch (err) {
-      console.warn('[GraphCanvas] Failed to fetch dynamic graph data:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [setNodes, setEdges]);
+      })
+      .catch(() => {})
+      .finally(() => setIsRefreshing(false));
+  };
 
-  // Fetch on mount and setup polling interval
   useEffect(() => {
-    fetchGraphData();
-    const interval = setInterval(fetchGraphData, 5000);
-    return () => clearInterval(interval);
-  }, [fetchGraphData]);
-
-  const handleNodeClick = useCallback(
-    (_: React.MouseEvent, node: Node) => {
-      if (onNodeSelect) {
-        onNodeSelect(node.data);
-      }
-    },
-    [onNodeSelect]
-  );
+    fetchGraph();
+  }, []);
 
   return (
-    <div className="relative w-full h-[620px] bg-card rounded-2xl border border-border shadow-2xl overflow-hidden glass-panel">
-      {/* Top Overlay Bar */}
-      <div className="absolute top-4 left-4 z-10 flex items-center space-x-3 px-4 py-2 bg-slate-900/90 rounded-xl border border-slate-800 backdrop-blur-md">
-        <Cpu className="w-5 h-5 text-accent-blue animate-pulse" />
-        <span className="text-sm font-semibold text-slate-200">
-          ContextGrid AI Graph Topology
-        </span>
-        <span className="px-2.5 py-0.5 text-xs bg-accent-blue/20 text-accent-blue rounded-full border border-accent-blue/30 font-mono">
-          {nodeCount} Nodes Ingested
+    <div className="w-full h-[540px] bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden relative">
+      {/* Top Controls Overlay */}
+      <div className="absolute top-4 left-4 z-10 flex items-center space-x-3 bg-white/95 backdrop-blur-md px-4 py-2 rounded-xl border border-slate-200 shadow-sm">
+        <div className="flex items-center space-x-2 text-xs font-semibold text-slate-800 font-mono">
+          <Layers className="w-4 h-4 text-indigo-600" />
+          <span>Live Topology Canvas</span>
+        </div>
+        <span className="px-2.5 py-0.5 rounded-full bg-slate-100 text-[11px] font-mono font-medium text-slate-600 border border-slate-200">
+          {totalParsed} Ingested AST Symbols
         </span>
         <button
-          onClick={fetchGraphData}
-          disabled={loading}
-          className="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition"
-          title="Refresh Graph"
+          onClick={fetchGraph}
+          className="p-1 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition"
+          title="Refresh Neo4j Graph"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-indigo-600' : ''}`} />
         </button>
       </div>
 
       <ReactFlow
-        nodes={nodes}
+        nodes={nodes.map((node) => {
+          const nodeData = node.data as any;
+          return {
+            ...node,
+            data: {
+              ...nodeData,
+              label: (
+                <div
+                  onClick={() => onNodeSelect(nodeData)}
+                  className="cursor-pointer space-y-2 group"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <FileCode className="w-4 h-4 text-indigo-600 shrink-0" />
+                      <span className="text-xs font-bold text-slate-900 font-mono truncate max-w-[140px]">
+                        {String(nodeData.label || '')}
+                      </span>
+                    </div>
+                    <span
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-bold font-mono border ${
+                        nodeData.risk === 'CRITICAL'
+                          ? 'bg-rose-50 text-rose-700 border-rose-200'
+                          : nodeData.risk === 'HIGH'
+                          ? 'bg-amber-50 text-amber-700 border-amber-200'
+                          : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                      }`}
+                    >
+                      {String(nodeData.risk || '')}
+                    </span>
+                  </div>
+
+                  <p className="text-[10px] text-slate-500 font-mono truncate">
+                    {String(nodeData.path || '')}
+                  </p>
+
+                  <div className="pt-1.5 border-t border-slate-100 flex items-center justify-between text-[10px] font-mono text-slate-500">
+                    <span>{(nodeData.functions || []).length} AST Functions</span>
+                    <span className="text-indigo-600 font-semibold group-hover:underline">Inspect →</span>
+                  </div>
+                </div>
+              )
+            }
+          };
+        })}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
-        onNodeClick={handleNodeClick}
         fitView
       >
-        <Background color="#334155" gap={20} size={1} />
-        <Controls className="bg-slate-900 border-slate-800 text-white rounded-lg p-1" />
-        <MiniMap
-          nodeColor={(node) => {
-            const risk = (node.data as any)?.risk;
-            if (risk === 'CRITICAL') return '#EF4444';
-            if (risk === 'HIGH') return '#F59E0B';
-            if (risk === 'MEDIUM') return '#3B82F6';
-            return '#10B981';
-          }}
-          className="bg-slate-900/90 border-slate-800 rounded-xl"
-        />
+        <Background variant={BackgroundVariant.Dots} gap={16} size={1.5} color="#CBD5E1" />
+        <Controls className="bg-white border-slate-200 shadow-sm text-slate-700 fill-slate-700" />
       </ReactFlow>
     </div>
   );

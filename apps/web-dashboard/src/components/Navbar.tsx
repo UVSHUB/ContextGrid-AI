@@ -39,37 +39,37 @@ export default function Navbar({
   onTriggerAutoFix
 }: NavbarProps) {
   return (
-    <header className="sticky top-0 z-40 w-full bg-card/90 backdrop-blur-xl border-b border-border shadow-xl">
-      <div className="max-w-7xl mx-auto px-6 py-3.5 flex items-center justify-between">
+    <header className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+      <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
         {/* Brand Logo & Repo Selector */}
         <div className="flex items-center space-x-6">
           <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('topology')}>
-            <div className="p-2.5 rounded-2xl bg-gradient-to-tr from-accent-purple to-accent-blue shadow-lg shadow-accent-purple/20">
-              <Layers className="w-5 h-5 text-white" />
+            <div className="p-2 rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-200">
+              <Layers className="w-5 h-5" />
             </div>
             <div>
-              <div className="flex items-center space-x-1.5">
-                <span className="text-base font-extrabold tracking-tight text-white font-mono">
+              <div className="flex items-center space-x-2">
+                <span className="text-base font-bold tracking-tight text-slate-900 font-mono">
                   ContextGrid
                 </span>
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-accent-purple/20 text-accent-purple border border-accent-purple/30 font-mono">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 font-mono">
                   ENTERPRISE
                 </span>
               </div>
-              <span className="text-[11px] text-slate-400 font-mono block">
-                Code Intelligence & Multi-Repo Search Engine
+              <span className="text-[11px] text-slate-500 font-mono block">
+                Code Intelligence & Multi-Repo Engine
               </span>
             </div>
           </div>
 
-          <div className="h-6 w-[1px] bg-slate-800 hidden md:block" />
+          <div className="h-6 w-[1px] bg-slate-200 hidden md:block" />
 
           {/* Repo Selector Dropdown */}
           <div className="relative hidden md:flex items-center">
             <select
               value={selectedRepo}
               onChange={(e) => setSelectedRepo(e.target.value)}
-              className="appearance-none bg-slate-900 border border-slate-800 text-xs font-mono text-slate-200 py-1.5 pl-3 pr-8 rounded-xl focus:outline-none focus:border-accent-purple cursor-pointer"
+              className="appearance-none bg-slate-100/80 border border-slate-200 text-xs font-mono font-medium text-slate-700 py-1.5 pl-3 pr-8 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer shadow-xs"
             >
               <option value="IdeaTech-Internship-Management-Portal">
                 IdeaTech-Internship-Management-Portal
@@ -78,7 +78,7 @@ export default function Navbar({
               <option value="frontend-web-app">frontend-web-app</option>
               <option value="mobile-flutter-app">mobile-flutter-app</option>
             </select>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 pointer-events-none" />
+            <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-2.5 pointer-events-none" />
           </div>
         </div>
 
@@ -86,43 +86,45 @@ export default function Navbar({
         <div className="flex items-center space-x-3">
           <button
             onClick={onOpenSearch}
-            className="flex items-center space-x-2 px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700 transition text-xs font-mono"
+            className="flex items-center space-x-2 px-3.5 py-1.5 rounded-xl bg-slate-100/90 border border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-300 transition text-xs font-mono shadow-xs"
           >
-            <Search className="w-3.5 h-3.5 text-accent-cyan" />
+            <Search className="w-3.5 h-3.5 text-indigo-600" />
             <span className="hidden sm:inline">Search Symbol / Structural...</span>
-            <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] text-slate-400">⌘K</kbd>
+            <kbd className="px-1.5 py-0.5 rounded bg-white text-[10px] font-semibold text-slate-500 border border-slate-200 shadow-xs">
+              ⌘K
+            </kbd>
           </button>
 
           <button
             onClick={onTriggerAutoFix}
-            className="flex items-center space-x-2 px-4 py-1.5 rounded-xl bg-gradient-to-r from-accent-purple to-accent-blue text-white font-bold text-xs shadow-lg shadow-accent-purple/20 hover:opacity-95 transition"
+            className="flex items-center space-x-2 px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-md shadow-indigo-100 transition"
           >
             <Wand2 className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">1-Click Auto-Fix</span>
           </button>
 
           {/* Live WS Status Pill */}
-          <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] font-mono">
+          <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-[11px] font-mono shadow-xs">
             <span
               className={`w-2 h-2 rounded-full ${
-                wsConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
+                wsConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
               }`}
             />
-            <span className="text-slate-300 hidden lg:inline">
-              {wsConnected ? `Connected • ${totalNodes} Symbols Indexing` : 'Daemon Offline'}
+            <span className="text-slate-700 font-medium hidden lg:inline">
+              {wsConnected ? `Connected • ${totalNodes} AST Symbols` : 'Daemon Offline'}
             </span>
           </div>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="max-w-7xl mx-auto px-6 flex items-center space-x-2 border-t border-slate-800/60 overflow-x-auto no-scrollbar">
+      <div className="max-w-7xl mx-auto px-6 flex items-center space-x-1 border-t border-slate-100 overflow-x-auto no-scrollbar">
         <button
           onClick={() => setActiveTab('topology')}
-          className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold font-mono border-b-2 transition shrink-0 ${
+          className={`flex items-center space-x-2 px-3.5 py-2.5 text-xs font-semibold font-mono border-b-2 transition shrink-0 ${
             activeTab === 'topology'
-              ? 'border-accent-purple text-accent-purple bg-accent-purple/10'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50'
+              : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
           <Globe className="w-4 h-4" />
@@ -131,10 +133,10 @@ export default function Navbar({
 
         <button
           onClick={() => setActiveTab('health')}
-          className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold font-mono border-b-2 transition shrink-0 ${
+          className={`flex items-center space-x-2 px-3.5 py-2.5 text-xs font-semibold font-mono border-b-2 transition shrink-0 ${
             activeTab === 'health'
-              ? 'border-accent-purple text-accent-purple bg-accent-purple/10'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50'
+              : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
           <Activity className="w-4 h-4" />
@@ -143,34 +145,34 @@ export default function Navbar({
 
         <button
           onClick={() => setActiveTab('lineage')}
-          className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold font-mono border-b-2 transition shrink-0 ${
+          className={`flex items-center space-x-2 px-3.5 py-2.5 text-xs font-semibold font-mono border-b-2 transition shrink-0 ${
             activeTab === 'lineage'
-              ? 'border-accent-purple text-accent-purple bg-accent-purple/10'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50'
+              : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
-          <GitMerge className="w-4 h-4 text-accent-cyan" />
+          <GitMerge className="w-4 h-4 text-cyan-600" />
           <span>Multi-Repo Lineage</span>
         </button>
 
         <button
           onClick={() => setActiveTab('batch-changes')}
-          className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold font-mono border-b-2 transition shrink-0 ${
+          className={`flex items-center space-x-2 px-3.5 py-2.5 text-xs font-semibold font-mono border-b-2 transition shrink-0 ${
             activeTab === 'batch-changes'
-              ? 'border-accent-purple text-accent-purple bg-accent-purple/10'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50'
+              : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
-          <Sparkles className="w-4 h-4 text-accent-purple" />
+          <Sparkles className="w-4 h-4 text-purple-600" />
           <span>Batch Changes</span>
         </button>
 
         <button
           onClick={() => setActiveTab('pr-audits')}
-          className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold font-mono border-b-2 transition shrink-0 ${
+          className={`flex items-center space-x-2 px-3.5 py-2.5 text-xs font-semibold font-mono border-b-2 transition shrink-0 ${
             activeTab === 'pr-audits'
-              ? 'border-accent-purple text-accent-purple bg-accent-purple/10'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50'
+              : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
           <GitPullRequest className="w-4 h-4" />
@@ -179,10 +181,10 @@ export default function Navbar({
 
         <button
           onClick={() => setActiveTab('sentinel')}
-          className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold font-mono border-b-2 transition shrink-0 ${
+          className={`flex items-center space-x-2 px-3.5 py-2.5 text-xs font-semibold font-mono border-b-2 transition shrink-0 ${
             activeTab === 'sentinel'
-              ? 'border-accent-purple text-accent-purple bg-accent-purple/10'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50'
+              : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
           <ShieldCheck className="w-4 h-4" />
@@ -191,10 +193,10 @@ export default function Navbar({
 
         <button
           onClick={() => setActiveTab('ci-optimizer')}
-          className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold font-mono border-b-2 transition shrink-0 ${
+          className={`flex items-center space-x-2 px-3.5 py-2.5 text-xs font-semibold font-mono border-b-2 transition shrink-0 ${
             activeTab === 'ci-optimizer'
-              ? 'border-accent-purple text-accent-purple bg-accent-purple/10'
-              : 'border-transparent text-slate-400 hover:text-slate-200'
+              ? 'border-indigo-600 text-indigo-600 bg-indigo-50/50'
+              : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
           }`}
         >
           <Zap className="w-4 h-4" />
