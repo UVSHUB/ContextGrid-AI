@@ -13,7 +13,7 @@ import {
   GitMerge,
   Layers,
   Sparkles,
-  MessageSquareCode
+  FolderPlus
 } from 'lucide-react';
 
 export type TabType = 'topology' | 'health' | 'pr-audits' | 'sentinel' | 'ci-optimizer' | 'lineage' | 'batch-changes';
@@ -27,6 +27,7 @@ interface NavbarProps {
   totalNodes: number;
   onOpenSearch: () => void;
   onOpenAgenticChat: () => void;
+  onOpenConnectModal: () => void;
   onTriggerAutoFix: () => void;
 }
 
@@ -39,13 +40,14 @@ export default function Navbar({
   totalNodes,
   onOpenSearch,
   onOpenAgenticChat,
+  onOpenConnectModal,
   onTriggerAutoFix
 }: NavbarProps) {
   return (
     <header className="sticky top-0 z-40 w-full bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-        {/* Brand Logo & Repo Selector */}
-        <div className="flex items-center space-x-6">
+        {/* Brand Logo, Repo Selector & Connect Button */}
+        <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('topology')}>
             <div className="p-2 rounded-xl bg-indigo-600 text-white shadow-md shadow-indigo-200">
               <Layers className="w-5 h-5" />
@@ -67,8 +69,8 @@ export default function Navbar({
 
           <div className="h-6 w-[1px] bg-slate-200 hidden md:block" />
 
-          {/* Repo Selector Dropdown */}
-          <div className="relative hidden md:flex items-center">
+          {/* Repo Selector & Connect Codebase Trigger */}
+          <div className="relative hidden md:flex items-center space-x-2">
             <select
               value={selectedRepo}
               onChange={(e) => setSelectedRepo(e.target.value)}
@@ -82,6 +84,15 @@ export default function Navbar({
               <option value="mobile-flutter-app">mobile-flutter-app</option>
             </select>
             <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-2.5 pointer-events-none" />
+
+            <button
+              onClick={onOpenConnectModal}
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 text-xs font-mono font-bold transition shadow-xs"
+              title="Connect any local code repository"
+            >
+              <FolderPlus className="w-3.5 h-3.5 text-indigo-600" />
+              <span>Connect Codebase</span>
+            </button>
           </div>
         </div>
 

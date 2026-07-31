@@ -14,6 +14,7 @@ import SelfHealingPatchModal from '@/components/SelfHealingPatchModal';
 import LineageView from '@/components/LineageView';
 import BatchChangesView from '@/components/BatchChangesView';
 import CodebaseChatModal from '@/components/CodebaseChatModal';
+import ConnectCodebaseModal from '@/components/ConnectCodebaseModal';
 import { ShieldCheck, Activity, Cpu, Layers, Zap, Sparkles } from 'lucide-react';
 
 const initialAlerts: AlertItem[] = [
@@ -45,6 +46,7 @@ export default function DashboardPage() {
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isAgenticChatOpen, setIsAgenticChatOpen] = useState(false);
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
   const [isPatchModalOpen, setIsPatchModalOpen] = useState(false);
   const [activePatches, setActivePatches] = useState<any[]>([]);
   const [wsConnected, setWsConnected] = useState(false);
@@ -109,6 +111,13 @@ export default function DashboardPage() {
     setIsSlideOverOpen(true);
   };
 
+  const handleCodebaseConnected = (repoName: string, parsedCount: number) => {
+    setSelectedRepo(repoName);
+    setTotalNodes(parsedCount);
+    setToastMessage(`🎉 Connected Codebase '${repoName}' with ${parsedCount} Ingested AST Symbols!`);
+    setTimeout(() => setToastMessage(null), 5000);
+  };
+
   const handleTriggerSelfHealing = async () => {
     try {
       const res = await fetch('http://localhost:8080/api/autofix', {
@@ -159,6 +168,7 @@ export default function DashboardPage() {
         totalNodes={totalNodes}
         onOpenSearch={() => setIsSearchOpen(true)}
         onOpenAgenticChat={() => setIsAgenticChatOpen(true)}
+        onOpenConnectModal={() => setIsConnectModalOpen(true)}
         onTriggerAutoFix={handleTriggerSelfHealing}
       />
 
@@ -229,6 +239,13 @@ export default function DashboardPage() {
         <Sparkles className="w-4 h-4 text-purple-200 group-hover:rotate-12 transition transform" />
         <span>Ask Codebase AI</span>
       </button>
+
+      {/* 1-Click Codebase Connector Modal */}
+      <ConnectCodebaseModal
+        isOpen={isConnectModalOpen}
+        onClose={() => setIsConnectModalOpen(false)}
+        onConnected={handleCodebaseConnected}
+      />
 
       {/* Sourcegraph Cody-Class Agentic Assistant Modal */}
       <CodebaseChatModal
