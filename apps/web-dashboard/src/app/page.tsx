@@ -47,8 +47,19 @@ export default function DashboardPage() {
   const [wsConnected, setWsConnected] = useState(false);
   const [isPatchModalOpen, setIsPatchModalOpen] = useState(false);
   const [activePatches, setActivePatches] = useState<any[]>([]);
+  const [totalNodes, setTotalNodes] = useState(67);
 
   useEffect(() => {
+    // Fetch live node count from python parser engine
+    fetch('http://localhost:8000/graph')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.nodes && data.nodes.length > 0) {
+          setTotalNodes(data.nodes.length);
+        }
+      })
+      .catch(() => {});
+
     let socket: WebSocket | null = null;
     try {
       socket = new WebSocket('ws://localhost:8080');
@@ -164,7 +175,7 @@ export default function DashboardPage() {
 
           <div className="hidden sm:flex items-center space-x-2 px-3 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono">
             <Activity className={`w-3.5 h-3.5 ${wsConnected ? 'text-emerald-400 animate-pulse' : 'text-amber-400'}`} />
-            <span className="text-slate-300">Daemon:</span>
+            <span className="text-slate-300 font-semibold">Daemon:</span>
             <span className={wsConnected ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold'}>
               {wsConnected ? 'Connected (8080)' : 'Active'}
             </span>
@@ -181,7 +192,7 @@ export default function DashboardPage() {
             </span>
             <GitBranch className="w-4 h-4 text-accent-blue" />
           </div>
-          <p className="text-2xl font-black text-white font-mono mt-2">142</p>
+          <p className="text-2xl font-black text-white font-mono mt-2">{totalNodes}</p>
           <span className="text-[11px] text-slate-500 font-mono">AST Tree-sitter Ingested</span>
         </div>
 
@@ -193,7 +204,7 @@ export default function DashboardPage() {
             <ShieldAlert className="w-4 h-4 text-accent-danger" />
           </div>
           <p className="text-2xl font-black text-red-400 font-mono mt-2">3 Modules</p>
-          <span className="text-[11px] text-slate-500 font-mono">UserSchema, AuthController, API</span>
+          <span className="text-[11px] text-slate-500 font-mono">authController, taskController, db</span>
         </div>
 
         <div className="p-4 rounded-2xl bg-card border border-border glass-panel">
