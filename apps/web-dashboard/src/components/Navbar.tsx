@@ -12,7 +12,8 @@ import {
   ChevronDown,
   GitMerge,
   Layers,
-  Sparkles
+  Sparkles,
+  MessageSquareCode
 } from 'lucide-react';
 
 export type TabType = 'topology' | 'health' | 'pr-audits' | 'sentinel' | 'ci-optimizer' | 'lineage' | 'batch-changes';
@@ -25,6 +26,7 @@ interface NavbarProps {
   wsConnected: boolean;
   totalNodes: number;
   onOpenSearch: () => void;
+  onOpenAgenticChat: () => void;
   onTriggerAutoFix: () => void;
 }
 
@@ -36,6 +38,7 @@ export default function Navbar({
   wsConnected,
   totalNodes,
   onOpenSearch,
+  onOpenAgenticChat,
   onTriggerAutoFix
 }: NavbarProps) {
   return (
@@ -82,14 +85,22 @@ export default function Navbar({
           </div>
         </div>
 
-        {/* Global Structural Search & Auto-Fix Trigger */}
+        {/* Agentic Chat, Structural Search & Auto-Fix */}
         <div className="flex items-center space-x-3">
+          <button
+            onClick={onOpenAgenticChat}
+            className="flex items-center space-x-2 px-3.5 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 transition text-xs font-mono font-bold shadow-xs"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+            <span>Ask Codebase AI</span>
+          </button>
+
           <button
             onClick={onOpenSearch}
             className="flex items-center space-x-2 px-3.5 py-1.5 rounded-xl bg-slate-100/90 border border-slate-200 text-slate-600 hover:text-slate-900 hover:border-slate-300 transition text-xs font-mono shadow-xs"
           >
             <Search className="w-3.5 h-3.5 text-indigo-600" />
-            <span className="hidden sm:inline">Search Symbol / Structural...</span>
+            <span className="hidden sm:inline">Search Symbol...</span>
             <kbd className="px-1.5 py-0.5 rounded bg-white text-[10px] font-semibold text-slate-500 border border-slate-200 shadow-xs">
               ⌘K
             </kbd>

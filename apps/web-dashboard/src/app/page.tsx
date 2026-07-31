@@ -13,7 +13,8 @@ import SymbolSearchModal from '@/components/SymbolSearchModal';
 import SelfHealingPatchModal from '@/components/SelfHealingPatchModal';
 import LineageView from '@/components/LineageView';
 import BatchChangesView from '@/components/BatchChangesView';
-import { ShieldCheck, Activity, Cpu, Layers, Zap } from 'lucide-react';
+import CodebaseChatModal from '@/components/CodebaseChatModal';
+import { ShieldCheck, Activity, Cpu, Layers, Zap, Sparkles } from 'lucide-react';
 
 const initialAlerts: AlertItem[] = [
   {
@@ -43,6 +44,7 @@ export default function DashboardPage() {
   const [selectedNode, setSelectedNode] = useState<any>(null);
   const [isSlideOverOpen, setIsSlideOverOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isAgenticChatOpen, setIsAgenticChatOpen] = useState(false);
   const [isPatchModalOpen, setIsPatchModalOpen] = useState(false);
   const [activePatches, setActivePatches] = useState<any[]>([]);
   const [wsConnected, setWsConnected] = useState(false);
@@ -146,7 +148,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-slate-100 flex flex-col font-sans selection:bg-accent-purple selection:text-white">
+    <div className="min-h-screen bg-background text-slate-900 flex flex-col font-sans selection:bg-indigo-600 selection:text-white">
       {/* Top Enterprise Navigation */}
       <Navbar
         activeTab={activeTab}
@@ -156,6 +158,7 @@ export default function DashboardPage() {
         wsConnected={wsConnected}
         totalNodes={totalNodes}
         onOpenSearch={() => setIsSearchOpen(true)}
+        onOpenAgenticChat={() => setIsAgenticChatOpen(true)}
         onTriggerAutoFix={handleTriggerSelfHealing}
       />
 
@@ -200,14 +203,14 @@ export default function DashboardPage() {
         {/* Tab 7: CI Optimizer */}
         {activeTab === 'ci-optimizer' && (
           <div className="space-y-6 animate-in fade-in duration-200">
-            <div className="p-6 bg-card rounded-2xl border border-border glass-panel space-y-4">
+            <div className="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm space-y-4">
               <div className="flex items-center space-x-3">
-                <div className="p-3 bg-accent-warning/20 text-accent-warning rounded-xl border border-accent-warning/30">
+                <div className="p-3 bg-amber-50 text-amber-600 rounded-xl border border-amber-200">
                   <Zap className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white tracking-wide">Blast-Radius CI/CD Test Optimizer</h2>
-                  <p className="text-xs text-slate-400 font-mono">
+                  <h2 className="text-xl font-bold text-slate-900 tracking-tight">Blast-Radius CI/CD Test Optimizer</h2>
+                  <p className="text-xs text-slate-500 font-mono">
                     Executes only unit and integration tests affected by code changes • Cuts CI time up to 93%
                   </p>
                 </div>
@@ -217,6 +220,21 @@ export default function DashboardPage() {
           </div>
         )}
       </main>
+
+      {/* Floating Bottom-Right Ask Codebase AI Button */}
+      <button
+        onClick={() => setIsAgenticChatOpen(true)}
+        className="fixed bottom-6 right-6 z-40 px-4 py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center space-x-2 shadow-2xl transition group"
+      >
+        <Sparkles className="w-4 h-4 text-purple-200 group-hover:rotate-12 transition transform" />
+        <span>Ask Codebase AI</span>
+      </button>
+
+      {/* Sourcegraph Cody-Class Agentic Assistant Modal */}
+      <CodebaseChatModal
+        isOpen={isAgenticChatOpen}
+        onClose={() => setIsAgenticChatOpen(false)}
+      />
 
       {/* Slide-Over Drawer on Node Click */}
       <NodeSlideOver
@@ -245,8 +263,8 @@ export default function DashboardPage() {
 
       {/* Bottom Floating Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-2xl bg-slate-900 border border-slate-800 text-xs font-mono text-slate-100 shadow-2xl backdrop-blur-xl animate-in slide-in-from-bottom duration-200 flex items-center space-x-2">
-          <Activity className="w-4 h-4 text-accent-cyan animate-pulse" />
+        <div className="fixed bottom-6 left-6 z-50 px-4 py-3 rounded-2xl bg-white border border-slate-200 text-xs font-mono text-slate-800 shadow-2xl animate-in slide-in-from-bottom duration-200 flex items-center space-x-2">
+          <Activity className="w-4 h-4 text-indigo-600 animate-pulse" />
           <span>{toastMessage}</span>
         </div>
       )}
