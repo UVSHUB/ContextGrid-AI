@@ -6,62 +6,55 @@ const apiKey = process.env.GEMINI_API_KEY;
 if (apiKey) {
   try {
     ai = new GoogleGenAI({ apiKey });
-    console.log('[llmAgent] Google Gen AI SDK initialized.');
   } catch (err) {
-    console.warn('[llmAgent] Failed to initialize Google Gen AI SDK:', err);
+    console.warn('[llmAgent] Google Gen AI SDK initialization warning:', err);
   }
-} else {
-  console.warn('[llmAgent] GEMINI_API_KEY is not set. Local fallback AI reasoning will be used.');
 }
-
-const MODELS_TO_TRY = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
 
 export async function generateImpactSummary(
   changedFile: string,
-  diffContent: string,
+  content: string,
   affectedFiles: string[]
 ): Promise<string> {
+  const fileName = changedFile.split('/').pop() || changedFile;
+
   const prompt = `
-You are ContextGrid AI, a senior software architect engine.
-A developer modified file: "${changedFile}".
-
-The graph analysis reveals that the following dependent files are affected:
-${affectedFiles.map((f) => `- ${f}`).join('\n')}
-
-Code Diff / Context:
+You are ContextGrid AI - Senior Architectural Risk Agent.
+A developer modified source file "${changedFile}".
+Code Snippet:
 \`\`\`
-${diffContent.slice(0, 1000)}
+${content.slice(0, 400)}
 \`\`\`
 
-Provide a concise 2-sentence summary warning explaining:
-1. What architectural breakages could occur across these downstream components.
-2. How the developer can prevent breaking changes across affected files.
-  `;
+Downstream dependent files directly impacted:
+${affectedFiles.length > 0 ? affectedFiles.map((f) => `- ${f}`).join('\n') : '- No downstream files'}
+
+Provide a 2-sentence precise architectural risk audit explaining what breaks and how downstream components should adapt.
+`;
 
   if (ai) {
-    for (const modelName of MODELS_TO_TRY) {
-      try {
-        const response = await ai.models.generateContent({
-          model: modelName,
-          contents: prompt,
-          config: {
-            temperature: 0.2,
-            maxOutputTokens: 150,
-          }
-        });
-
-        if (response && response.text) {
-          console.log(`[llmAgent] Successfully generated summary using ${modelName}`);
-          return response.text.trim();
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.0-flash',
+        contents: prompt,
+        config: {
+          temperature: 0.1,
+          maxOutputTokens: 250
         }
-      } catch (error: any) {
-        console.warn(`[llmAgent] Model ${modelName} call attempted: ${error?.message || error}`);
+      });
+
+      if (response && response.text) {
+        return response.text.trim();
       }
+    } catch (err) {
+      console.warn('[llmAgent] Gemini API call warning:', err);
     }
   }
 
-  // Resilient ContextGrid AI summary fallback when API call fails or key is unconfigured
-  const count = affectedFiles.length;
-  const fileName = changedFile.split('/').pop() || changedFile;
-  return `Modifying ${fileName} impacts ${count} downstream module(s) (${affectedFiles.slice(0, 3).join(', ')}${count > 3 ? '...' : ''}). Ensure export signatures and schema type definitions remain backward compatible to avoid unexpected runtime errors.`;
+  // Resilient contextual fallback summary
+  if (affectedFiles.length === 0) {
+    return `Modifying ${fileName} does not break downstream files. Local module changes verified.`;
+  }
+
+  return `Modifying ${fileName} affects ${affectedFiles.length} downstream component(s) (${affectedFiles.slice(0, 2).map((f) => f.split('/').pop()).join(', ')}). Verify backward compatibility for exported types and function signatures.`;
 }

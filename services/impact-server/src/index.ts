@@ -97,7 +97,7 @@ async function handleFileChange(ws: WebSocket, filePath: string, content: string
     ];
   }
 
-  const { score, riskLevel, affectedCount } = calculateImpactScore(dependents);
+  const { score, riskLevel, affectedCount } = calculateImpactScore(dependents, filePath);
   const affectedFilesList = dependents.map((d) => d.affectedFile);
   const aiSummary = await generateImpactSummary(filePath, content, affectedFilesList);
   const governanceViolations = auditArchitectureGovernance(filePath, affectedFilesList);
@@ -126,7 +126,7 @@ async function handleFileChange(ws: WebSocket, filePath: string, content: string
 app.get('/health', (req, res) => {
   res.json({
     status: 'online',
-    service: 'ContextGrid Code Intelligence Engine (Sourcegraph-Class Active)',
+    service: 'ContextGrid Dynamic Intelligence Engine (Gemini 2.0 Flash Active)',
     connectedClients: clients.size,
     geminiConfigured: !!process.env.GEMINI_API_KEY
   });
@@ -161,18 +161,19 @@ app.post('/api/rag/query', async (req, res) => {
 
 app.post('/api/impact', async (req, res) => {
   const { filePath, content } = req.body;
+  const targetFile = filePath || 'src/schemas/UserSchema.ts';
   const dependents: DependentNode[] = [
     { affectedFile: 'src/controllers/AuthController.ts', depth: 1 },
     { affectedFile: 'src/components/UserProfileView.tsx', depth: 2 },
     { affectedFile: 'src/app/api/users/route.ts', depth: 3 }
   ];
 
-  const { score, riskLevel, affectedCount } = calculateImpactScore(dependents);
-  const aiSummary = await generateImpactSummary(filePath || 'src/schemas/UserSchema.ts', content || '', dependents.map((d) => d.affectedFile));
-  const governanceViolations = auditArchitectureGovernance(filePath || 'src/schemas/UserSchema.ts', dependents.map((d) => d.affectedFile));
+  const { score, riskLevel, affectedCount } = calculateImpactScore(dependents, targetFile);
+  const aiSummary = await generateImpactSummary(targetFile, content || '', dependents.map((d) => d.affectedFile));
+  const governanceViolations = auditArchitectureGovernance(targetFile, dependents.map((d) => d.affectedFile));
 
   res.json({
-    changedFile: filePath || 'src/schemas/UserSchema.ts',
+    changedFile: targetFile,
     score,
     riskLevel,
     affectedCount,
@@ -215,13 +216,14 @@ app.post('/api/impacted-tests', (req, res) => {
 
 app.post('/api/pr-digest', async (req, res) => {
   const { changedFile, content, affectedFiles, prNumber } = req.body;
+  const targetFile = changedFile || 'src/schemas/UserSchema.ts';
   const affectedList = affectedFiles || ['src/controllers/AuthController.ts', 'src/components/UserProfileView.tsx'];
-  const { score, riskLevel } = calculateImpactScore(affectedList.map((f: string) => ({ affectedFile: f, depth: 1 })));
-  const aiSummary = await generateImpactSummary(changedFile || 'src/schemas/UserSchema.ts', content || '', affectedList);
+  const { score, riskLevel } = calculateImpactScore(affectedList.map((f: string) => ({ affectedFile: f, depth: 1 })), targetFile);
+  const aiSummary = await generateImpactSummary(targetFile, content || '', affectedList);
 
   const markdown = generatePRImpactDigestMarkdown({
     prNumber: prNumber || 104,
-    changedFile: changedFile || 'src/schemas/UserSchema.ts',
+    changedFile: targetFile,
     score,
     riskLevel,
     affectedFiles: affectedList,
@@ -232,5 +234,5 @@ app.post('/api/pr-digest', async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`[ImpactServer] ContextGrid Intelligence Engine listening on port ${PORT}`);
+  console.log(`[ImpactServer] ContextGrid Dynamic Intelligence Engine listening on port ${PORT}`);
 });

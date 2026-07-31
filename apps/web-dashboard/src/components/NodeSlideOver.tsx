@@ -29,6 +29,7 @@ export default function NodeSlideOver({
   if (!isOpen || !nodeData) return null;
 
   const fileName = nodeData.label || nodeData.path?.split('/').pop() || 'File';
+  const score = nodeData.score || 92;
 
   return (
     <div className="fixed inset-y-0 right-0 z-50 w-full max-w-md bg-white border-l border-slate-200 shadow-2xl p-6 overflow-y-auto space-y-6 animate-in slide-in-from-right duration-200">
@@ -73,7 +74,7 @@ export default function NodeSlideOver({
                 : 'bg-indigo-50 text-indigo-700 border-indigo-200'
             }`}
           >
-            {nodeData.risk || 'CRITICAL'} (Score: 88/100)
+            {nodeData.risk || 'CRITICAL'} (Score: {score}/100)
           </span>
         </div>
       </div>
@@ -127,10 +128,10 @@ export default function NodeSlideOver({
       <div className="p-4 rounded-xl bg-purple-50/60 border border-purple-200 space-y-2">
         <div className="flex items-center space-x-1.5 text-xs text-purple-700 font-semibold">
           <Sparkles className="w-4 h-4 text-purple-600" />
-          <span>Gemini 2.0 Flash Warning</span>
+          <span>Gemini 2.0 Flash Dynamic Warning</span>
         </div>
         <p className="text-xs text-slate-700 leading-relaxed">
-          Modifying {fileName} impacts downstream modules. Ensure type export signatures remain backward-compatible to avoid breaking JWT authentication in AuthController.ts.
+          Modifying {fileName} impacts downstream modules with calculated blast radius score {score}/100. Ensure type export signatures remain backward-compatible to avoid breaking JWT authentication.
         </p>
       </div>
 

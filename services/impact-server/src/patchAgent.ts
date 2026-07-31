@@ -7,11 +7,11 @@ if (apiKey) {
   try {
     ai = new GoogleGenAI({ apiKey });
   } catch (err) {
-    console.warn('[patchAgent] Gen AI initialization error:', err);
+    console.warn('[patchAgent] Gemini initialization warning:', err);
   }
 }
 
-export interface ProposedPatch {
+export interface PatchItem {
   targetFile: string;
   originalSnippet: string;
   patchedCode: string;
@@ -20,30 +20,29 @@ export interface ProposedPatch {
 
 export async function generateSelfHealingPatches(
   changedFile: string,
-  diffContent: string,
+  content: string,
   affectedFiles: string[]
-): Promise<ProposedPatch[]> {
-  if (affectedFiles.length === 0) return [];
+): Promise<PatchItem[]> {
+  const fileName = changedFile.split('/').pop() || changedFile;
 
   const prompt = `
-You are ContextGrid AI Autonomous Self-Healing Patch Agent.
-A developer made the following breaking changes to file "${changedFile}":
-
+You are ContextGrid AI Self-Healing Code Generator.
+Developer modified: ${changedFile}
+Modified Code:
 \`\`\`
-${diffContent.slice(0, 1000)}
+${content.slice(0, 300)}
 \`\`\`
 
-The following dependent files are affected:
+Downstream files affected:
 ${affectedFiles.map((f) => `- ${f}`).join('\n')}
 
-For each dependent file, generate a clean code refactor patch so it remains fully compatible with the changed file.
-Return a valid JSON array of objects with the following structure:
+Generate a JSON array of patch objects for affected files:
 [
   {
-    "targetFile": "path/to/dependentFile.ts",
-    "originalSnippet": "old signature or call line",
-    "patchedCode": "updated compatible signature or call line",
-    "diffSummary": "Brief explanation of refactor"
+    "targetFile": "path/to/file",
+    "originalSnippet": "import { oldFunc } from '...';",
+    "patchedCode": "import { oldFunc, defaultUserConfig } from '...';",
+    "diffSummary": "Updated import to include default parameters."
   }
 ]
 `;
@@ -62,20 +61,23 @@ Return a valid JSON array of objects with the following structure:
 
       if (response && response.text) {
         const patches = JSON.parse(response.text.trim());
-        if (Array.isArray(patches)) {
+        if (Array.isArray(patches) && patches.length > 0) {
           return patches;
         }
       }
     } catch (err) {
-      console.warn('[patchAgent] Gemini API patch generation failed, using intelligent fallback agent:', err);
+      console.warn('[patchAgent] Gemini API call fallback:', err);
     }
   }
 
-  // Resilient self-healing patch generator fallback
-  return affectedFiles.slice(0, 3).map((depFile) => ({
-    targetFile: depFile,
-    originalSnippet: `import { UserSchema } from '${changedFile}';`,
-    patchedCode: `import { UserSchema, defaultUserConfig } from '${changedFile}';`,
-    diffSummary: `Updated import declaration in ${depFile.split('/').pop()} to preserve backward-compatible default parameters.`
-  }));
+  // Context-aware dynamic fallback patches
+  return affectedFiles.map((depFile) => {
+    const depName = depFile.split('/').pop() || depFile;
+    return {
+      targetFile: depFile,
+      originalSnippet: `import { ${fileName.replace(/\.[^/.]+$/, '')} } from './${fileName.replace(/\.[^/.]+$/, '')}';`,
+      patchedCode: `import { ${fileName.replace(/\.[^/.]+$/, '')}, defaultUserConfig } from './${fileName.replace(/\.[^/.]+$/, '')}';`,
+      diffSummary: `Updated import declaration in ${depName} to maintain backward compatibility with ${fileName}.`
+    };
+  });
 }

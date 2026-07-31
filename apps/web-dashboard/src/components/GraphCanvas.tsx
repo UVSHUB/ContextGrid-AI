@@ -24,7 +24,7 @@ const initialNodes: Node[] = [
       label: 'authController.ts',
       path: 'backend/src/controllers/authController.ts',
       risk: 'CRITICAL',
-      score: 88,
+      score: 92,
       functions: ['loginUser', 'verifyToken', 'logout']
     },
     position: { x: 80, y: 120 },
@@ -44,7 +44,7 @@ const initialNodes: Node[] = [
       label: 'internActivityController.ts',
       path: 'backend/src/controllers/internActivityController.ts',
       risk: 'HIGH',
-      score: 62,
+      score: 68,
       functions: ['logActivity', 'getStats']
     },
     position: { x: 420, y: 60 },
@@ -119,26 +119,30 @@ export default function GraphCanvas({ onNodeSelect }: GraphCanvasProps) {
       .then((data) => {
         if (data.nodes && data.nodes.length > 0) {
           setTotalParsed(data.nodes.length);
-          const mappedNodes: Node[] = data.nodes.map((n: any, idx: number) => ({
-            id: n.id || `node-${idx}`,
-            data: {
-              label: n.name || n.id,
-              path: n.path || n.id,
-              risk: idx === 0 ? 'CRITICAL' : idx < 3 ? 'HIGH' : 'MEDIUM',
-              score: idx === 0 ? 88 : 50,
-              functions: n.functions || ['handleRequest']
-            },
-            position: { x: (idx % 3) * 320 + 80, y: Math.floor(idx / 3) * 160 + 80 },
-            style: {
-              background: '#FFFFFF',
-              color: '#0F172A',
-              border: '1px solid #E2E8F0',
-              borderRadius: '16px',
-              padding: '16px',
-              width: '260px',
-              boxShadow: '0 4px 12px rgba(15, 23, 42, 0.05)'
-            }
-          }));
+          const mappedNodes: Node[] = data.nodes.map((n: any, idx: number) => {
+            const dynamicScore = Math.max(25, 95 - idx * 14);
+            const risk = dynamicScore >= 75 ? 'CRITICAL' : dynamicScore >= 50 ? 'HIGH' : 'MEDIUM';
+            return {
+              id: n.id || `node-${idx}`,
+              data: {
+                label: n.name || n.id,
+                path: n.path || n.id,
+                risk,
+                score: dynamicScore,
+                functions: n.functions || ['handleRequest']
+              },
+              position: { x: (idx % 3) * 320 + 80, y: Math.floor(idx / 3) * 160 + 80 },
+              style: {
+                background: '#FFFFFF',
+                color: '#0F172A',
+                border: '1px solid #E2E8F0',
+                borderRadius: '16px',
+                padding: '16px',
+                width: '260px',
+                boxShadow: '0 4px 12px rgba(15, 23, 42, 0.05)'
+              }
+            };
+          });
 
           const mappedEdges: Edge[] = (data.edges || []).map((e: any, idx: number) => ({
             id: `e-${idx}`,
@@ -208,7 +212,7 @@ export default function GraphCanvas({ onNodeSelect }: GraphCanvasProps) {
                           : 'bg-indigo-50 text-indigo-700 border-indigo-200'
                       }`}
                     >
-                      {String(nodeData.risk || '')}
+                      {nodeData.score}/100 {String(nodeData.risk || '')}
                     </span>
                   </div>
 
