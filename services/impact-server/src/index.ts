@@ -13,6 +13,10 @@ import { generatePRImpactDigestMarkdown } from './prBot';
 import { WorkspaceGitWatcher } from './gitWatcher';
 import { runGeminiReasoningPipeline } from './llmReasoning';
 import { handleGitHubWebhook } from './githubBot';
+import { executeStructuralSearch } from './structuralSearch';
+import { auditFederatedGraphContracts } from './federatedGraph';
+import { createMultiRepoBatchChanges } from './batchChanges';
+import { executeGraphGuidedRAG } from './sourcegraphRag';
 
 dotenv.config();
 
@@ -28,10 +32,8 @@ const PORT = process.env.PORT || 8080;
 
 const clients: Set<WebSocket> = new Set();
 
-// Start Workspace Live Git Watcher
 const gitWatcher = new WorkspaceGitWatcher(process.cwd());
 gitWatcher.startWatching((deltaPayload) => {
-  console.log(`[GitWatcher] Broadcast Git Delta: ${deltaPayload.changedFile} (${deltaPayload.source})`);
   const deltaString = JSON.stringify(deltaPayload);
   clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
@@ -124,14 +126,38 @@ async function handleFileChange(ws: WebSocket, filePath: string, content: string
 app.get('/health', (req, res) => {
   res.json({
     status: 'online',
-    service: 'ContextGrid Control Server (v2.0 Full Integration Active)',
+    service: 'ContextGrid Code Intelligence Engine (Sourcegraph-Class Active)',
     connectedClients: clients.size,
     geminiConfigured: !!process.env.GEMINI_API_KEY
   });
 });
 
-// GitHub PR Webhook Gateway
 app.post('/api/github/webhook', handleGitHubWebhook);
+
+app.post('/api/search/structural', (req, res) => {
+  const hits = executeStructuralSearch(req.body);
+  res.json({ hits_count: hits.length, hits });
+});
+
+app.post('/api/federated-graph/audit', (req, res) => {
+  const audit = auditFederatedGraphContracts(req.body?.changedRepo);
+  res.json(audit);
+});
+
+app.post('/api/batch-changes', async (req, res) => {
+  const { primaryRepo, changedSymbol, mutationDetails } = req.body;
+  const result = await createMultiRepoBatchChanges(
+    primaryRepo || 'IdeaTech-Internship-Management-Portal',
+    changedSymbol || 'UserSchema',
+    mutationDetails || 'Modified interface payload'
+  );
+  res.json(result);
+});
+
+app.post('/api/rag/query', async (req, res) => {
+  const result = await executeGraphGuidedRAG(req.body);
+  res.json(result);
+});
 
 app.post('/api/impact', async (req, res) => {
   const { filePath, content } = req.body;
@@ -206,5 +232,5 @@ app.post('/api/pr-digest', async (req, res) => {
 });
 
 server.listen(PORT, () => {
-  console.log(`[ImpactServer] ContextGrid Control Engine listening on port ${PORT}`);
+  console.log(`[ImpactServer] ContextGrid Intelligence Engine listening on port ${PORT}`);
 });

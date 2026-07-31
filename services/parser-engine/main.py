@@ -8,11 +8,12 @@ import glob
 from parser import parse_code_file
 from graph_builder import graph_service
 from diff_parser import extract_ast_diff
+from scip_indexer import index_scip_symbols
 
 app = FastAPI(
-    title="ContextGrid AI - AST Parser Engine",
-    version="2.0.0",
-    description="Tree-sitter AST parser, AST Symbol Delta extractor, and Neo4j graph dependency engine"
+    title="ContextGrid AI - Code Intelligence Parser Engine",
+    version="3.0.0",
+    description="SCIP/LSIF Symbol Indexer, Tree-sitter AST parser, and Neo4j Graph Code Intelligence"
 )
 
 app.add_middleware(
@@ -44,7 +45,7 @@ class ASTDiffRequest(BaseModel):
 def health_check():
     return {
         "status": "online",
-        "service": "ContextGrid Parser Engine (v2.0 AST Delta Active)",
+        "service": "ContextGrid Code Intelligence Engine (v3.0 SCIP Active)",
         "neo4j_connected": graph_service.driver is not None
     }
 
@@ -55,12 +56,19 @@ def parse_file_endpoint(req: ParseFileRequest):
 
     parsed_data = parse_code_file(req.file_path, req.content)
     ingest_res = graph_service.ingest_parsed_ast(parsed_data)
+    scip_res = index_scip_symbols(req.file_path, req.content)
 
     return {
         "success": True,
         "parsed": parsed_data,
-        "graph_ingest": ingest_res
+        "graph_ingest": ingest_res,
+        "scip_index": scip_res
     }
+
+@app.post("/parse-scip-index")
+def parse_scip_index_endpoint(req: ParseFileRequest):
+    res = index_scip_symbols(req.file_path, req.content)
+    return {"success": True, "scip": res}
 
 @app.post("/parse-ast-diff")
 def parse_ast_diff_endpoint(req: ASTDiffRequest):
@@ -86,6 +94,7 @@ def parse_workspace_endpoint(req: ParseWorkspaceRequest):
                     code_content = f.read()
                 ast_data = parse_code_file(filepath, code_content)
                 graph_service.ingest_parsed_ast(ast_data)
+                index_scip_symbols(filepath, code_content)
                 parsed_files.append(filepath)
             except Exception as e:
                 print(f"[ParserEngine] Error reading {filepath}: {e}")

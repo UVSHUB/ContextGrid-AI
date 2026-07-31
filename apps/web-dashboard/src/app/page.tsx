@@ -11,6 +11,8 @@ import PRImpactAuditsView from '@/components/PRImpactAuditsView';
 import SentinelPanel from '@/components/SentinelPanel';
 import SymbolSearchModal from '@/components/SymbolSearchModal';
 import SelfHealingPatchModal from '@/components/SelfHealingPatchModal';
+import LineageView from '@/components/LineageView';
+import BatchChangesView from '@/components/BatchChangesView';
 import { ShieldCheck, Activity, Cpu, Layers, Zap } from 'lucide-react';
 
 const initialAlerts: AlertItem[] = [
@@ -80,7 +82,6 @@ export default function DashboardPage() {
             };
             setAlerts((prev) => [newAlert, ...prev]);
 
-            // Toast notification on IDE edit
             setToastMessage(`⚡ IDE Edit Recalculated: ${data.changedFile.split('/').pop()} (${data.score}/100 ${data.riskLevel})`);
             setTimeout(() => setToastMessage(null), 4000);
           }
@@ -180,17 +181,23 @@ export default function DashboardPage() {
         {/* Tab 2: System Health */}
         {activeTab === 'health' && <SystemHealthView totalNodes={totalNodes} />}
 
-        {/* Tab 3: PR Impact Audits */}
+        {/* Tab 3: Multi-Repo Lineage */}
+        {activeTab === 'lineage' && <LineageView />}
+
+        {/* Tab 4: Batch Changes */}
+        {activeTab === 'batch-changes' && <BatchChangesView />}
+
+        {/* Tab 5: PR Impact Audits */}
         {activeTab === 'pr-audits' && <PRImpactAuditsView />}
 
-        {/* Tab 4: Architecture Sentinel */}
+        {/* Tab 6: Architecture Sentinel */}
         {activeTab === 'sentinel' && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <SentinelPanel />
           </div>
         )}
 
-        {/* Tab 5: CI Optimizer */}
+        {/* Tab 7: CI Optimizer */}
         {activeTab === 'ci-optimizer' && (
           <div className="space-y-6 animate-in fade-in duration-200">
             <div className="p-6 bg-card rounded-2xl border border-border glass-panel space-y-4">

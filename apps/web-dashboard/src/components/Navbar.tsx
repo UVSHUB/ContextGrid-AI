@@ -2,20 +2,20 @@
 
 import React from 'react';
 import {
-  Layers,
-  Activity,
-  Search,
-  Wand2,
-  GitBranch,
   Globe,
-  BarChart3,
+  Activity,
   GitPullRequest,
   ShieldCheck,
   Zap,
-  ChevronDown
+  Search,
+  Wand2,
+  ChevronDown,
+  GitMerge,
+  Layers,
+  Sparkles
 } from 'lucide-react';
 
-export type TabType = 'topology' | 'health' | 'pr-audits' | 'sentinel' | 'ci-optimizer';
+export type TabType = 'topology' | 'health' | 'pr-audits' | 'sentinel' | 'ci-optimizer' | 'lineage' | 'batch-changes';
 
 interface NavbarProps {
   activeTab: TabType;
@@ -28,13 +28,6 @@ interface NavbarProps {
   onTriggerAutoFix: () => void;
 }
 
-const REPOS = [
-  'IdeaTech-Internship-Management-Portal',
-  'main-backend-api',
-  'frontend-web-app',
-  'auth-microservice'
-];
-
 export default function Navbar({
   activeTab,
   setActiveTab,
@@ -46,138 +39,166 @@ export default function Navbar({
   onTriggerAutoFix
 }: NavbarProps) {
   return (
-    <header className="w-full bg-card/90 border-b border-border sticky top-0 z-40 backdrop-blur-xl glass-panel px-6 py-3 space-y-3">
-      {/* Top Main Row */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        {/* Logo & Environment Selector */}
-        <div className="flex items-center space-x-5">
+    <header className="sticky top-0 z-40 w-full bg-card/90 backdrop-blur-xl border-b border-border shadow-xl">
+      <div className="max-w-7xl mx-auto px-6 py-3.5 flex items-center justify-between">
+        {/* Brand Logo & Repo Selector */}
+        <div className="flex items-center space-x-6">
           <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('topology')}>
-            <div className="p-2.5 bg-gradient-to-tr from-accent-blue to-accent-purple rounded-xl shadow-lg shadow-accent-purple/20">
-              <Layers className="w-6 h-6 text-white" />
+            <div className="p-2.5 rounded-2xl bg-gradient-to-tr from-accent-purple to-accent-blue shadow-lg shadow-accent-purple/20">
+              <Layers className="w-5 h-5 text-white" />
             </div>
             <div>
-              <div className="flex items-center space-x-2">
-                <span className="text-xl font-extrabold text-white tracking-tight">ContextGrid AI</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent-purple/20 text-accent-purple border border-accent-purple/30 font-mono font-bold">
-                  Enterprise
+              <div className="flex items-center space-x-1.5">
+                <span className="text-base font-extrabold tracking-tight text-white font-mono">
+                  ContextGrid
+                </span>
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-accent-purple/20 text-accent-purple border border-accent-purple/30 font-mono">
+                  ENTERPRISE
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 font-mono">Real-Time Architectural Impact Control</p>
+              <span className="text-[11px] text-slate-400 font-mono block">
+                Code Intelligence & Multi-Repo Search Engine
+              </span>
             </div>
           </div>
 
-          <div className="hidden lg:block h-7 w-px bg-slate-800" />
+          <div className="h-6 w-[1px] bg-slate-800 hidden md:block" />
 
-          {/* Environment/Repo Dropdown */}
-          <div className="relative group hidden sm:block">
+          {/* Repo Selector Dropdown */}
+          <div className="relative hidden md:flex items-center">
             <select
               value={selectedRepo}
               onChange={(e) => setSelectedRepo(e.target.value)}
-              className="appearance-none pl-9 pr-8 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs font-mono text-slate-200 focus:outline-none focus:border-accent-blue cursor-pointer"
+              className="appearance-none bg-slate-900 border border-slate-800 text-xs font-mono text-slate-200 py-1.5 pl-3 pr-8 rounded-xl focus:outline-none focus:border-accent-purple cursor-pointer"
             >
-              {REPOS.map((repo) => (
-                <option key={repo} value={repo}>
-                  {repo}
-                </option>
-              ))}
+              <option value="IdeaTech-Internship-Management-Portal">
+                IdeaTech-Internship-Management-Portal
+              </option>
+              <option value="main-backend-api">main-backend-api</option>
+              <option value="frontend-web-app">frontend-web-app</option>
+              <option value="mobile-flutter-app">mobile-flutter-app</option>
             </select>
-            <GitBranch className="w-3.5 h-3.5 text-accent-blue absolute left-3 top-2.5 pointer-events-none" />
-            <ChevronDown className="w-3.5 h-3.5 text-slate-500 absolute right-2.5 top-2.5 pointer-events-none" />
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 pointer-events-none" />
           </div>
         </div>
 
-        {/* Quick Actions & Status */}
+        {/* Global Structural Search & Auto-Fix Trigger */}
         <div className="flex items-center space-x-3">
-          {/* Cmd+K Quick Search Button */}
           <button
             onClick={onOpenSearch}
-            className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs text-slate-400 hover:text-slate-200 hover:border-slate-700 transition"
+            className="flex items-center space-x-2 px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700 transition text-xs font-mono"
           >
             <Search className="w-3.5 h-3.5 text-accent-cyan" />
-            <span className="font-mono text-[11px]">Search Symbol...</span>
-            <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] text-slate-400 font-mono">⌘K</kbd>
+            <span className="hidden sm:inline">Search Symbol / Structural...</span>
+            <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] text-slate-400">⌘K</kbd>
           </button>
 
-          {/* 1-Click Auto-Fix Action */}
           <button
             onClick={onTriggerAutoFix}
-            className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-accent-purple to-accent-blue text-white text-xs font-bold flex items-center space-x-2 hover:opacity-95 transition shadow-lg shadow-accent-purple/20"
+            className="flex items-center space-x-2 px-4 py-1.5 rounded-xl bg-gradient-to-r from-accent-purple to-accent-blue text-white font-bold text-xs shadow-lg shadow-accent-purple/20 hover:opacity-95 transition"
           >
             <Wand2 className="w-3.5 h-3.5" />
-            <span>1-Click Auto-Fix</span>
+            <span className="hidden sm:inline">1-Click Auto-Fix</span>
           </button>
 
-          {/* Live WS Status Indicator */}
-          <div className="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-mono">
-            <Activity className={`w-3.5 h-3.5 ${wsConnected ? 'text-emerald-400 animate-pulse' : 'text-amber-400'}`} />
-            <span className="text-slate-300 hidden md:inline">Live Status:</span>
-            <span className={wsConnected ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold'}>
-              {wsConnected ? `Connected (${totalNodes} Nodes)` : 'Daemon Active'}
+          {/* Live WS Status Pill */}
+          <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] font-mono">
+            <span
+              className={`w-2 h-2 rounded-full ${
+                wsConnected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'
+              }`}
+            />
+            <span className="text-slate-300 hidden lg:inline">
+              {wsConnected ? `Connected • ${totalNodes} Symbols Indexing` : 'Daemon Offline'}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Tabbed Navigation Row */}
-      <div className="flex items-center space-x-1 border-t border-slate-800/80 pt-2 overflow-x-auto">
+      {/* Navigation Tabs */}
+      <div className="max-w-7xl mx-auto px-6 flex items-center space-x-2 border-t border-slate-800/60 overflow-x-auto no-scrollbar">
         <button
           onClick={() => setActiveTab('topology')}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-semibold font-mono transition ${
+          className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold font-mono border-b-2 transition shrink-0 ${
             activeTab === 'topology'
-              ? 'bg-accent-blue/20 text-accent-blue border border-accent-blue/30 shadow-md shadow-accent-blue/10'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+              ? 'border-accent-purple text-accent-purple bg-accent-purple/10'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
           <Globe className="w-4 h-4" />
-          <span>🌐 Live Topology</span>
+          <span>Live Topology</span>
         </button>
 
         <button
           onClick={() => setActiveTab('health')}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-semibold font-mono transition ${
+          className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold font-mono border-b-2 transition shrink-0 ${
             activeTab === 'health'
-              ? 'bg-accent-blue/20 text-accent-blue border border-accent-blue/30 shadow-md shadow-accent-blue/10'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+              ? 'border-accent-purple text-accent-purple bg-accent-purple/10'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
-          <BarChart3 className="w-4 h-4" />
-          <span>📊 System Health</span>
+          <Activity className="w-4 h-4" />
+          <span>System Health</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('lineage')}
+          className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold font-mono border-b-2 transition shrink-0 ${
+            activeTab === 'lineage'
+              ? 'border-accent-purple text-accent-purple bg-accent-purple/10'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <GitMerge className="w-4 h-4 text-accent-cyan" />
+          <span>Multi-Repo Lineage</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('batch-changes')}
+          className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold font-mono border-b-2 transition shrink-0 ${
+            activeTab === 'batch-changes'
+              ? 'border-accent-purple text-accent-purple bg-accent-purple/10'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Sparkles className="w-4 h-4 text-accent-purple" />
+          <span>Batch Changes</span>
         </button>
 
         <button
           onClick={() => setActiveTab('pr-audits')}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-semibold font-mono transition ${
+          className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold font-mono border-b-2 transition shrink-0 ${
             activeTab === 'pr-audits'
-              ? 'bg-accent-blue/20 text-accent-blue border border-accent-blue/30 shadow-md shadow-accent-blue/10'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+              ? 'border-accent-purple text-accent-purple bg-accent-purple/10'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
           <GitPullRequest className="w-4 h-4" />
-          <span>🔀 PR Impact Audits</span>
+          <span>PR Impact Audits</span>
         </button>
 
         <button
           onClick={() => setActiveTab('sentinel')}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-semibold font-mono transition ${
+          className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold font-mono border-b-2 transition shrink-0 ${
             activeTab === 'sentinel'
-              ? 'bg-accent-blue/20 text-accent-blue border border-accent-blue/30 shadow-md shadow-accent-blue/10'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+              ? 'border-accent-purple text-accent-purple bg-accent-purple/10'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
           <ShieldCheck className="w-4 h-4" />
-          <span>🛡️ Architecture Sentinel</span>
+          <span>Sentinel Governance</span>
         </button>
 
         <button
           onClick={() => setActiveTab('ci-optimizer')}
-          className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-semibold font-mono transition ${
+          className={`flex items-center space-x-2 px-4 py-2.5 text-xs font-semibold font-mono border-b-2 transition shrink-0 ${
             activeTab === 'ci-optimizer'
-              ? 'bg-accent-blue/20 text-accent-blue border border-accent-blue/30 shadow-md shadow-accent-blue/10'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60'
+              ? 'border-accent-purple text-accent-purple bg-accent-purple/10'
+              : 'border-transparent text-slate-400 hover:text-slate-200'
           }`}
         >
           <Zap className="w-4 h-4" />
-          <span>⚡ CI Optimizer</span>
+          <span>CI Optimizer</span>
         </button>
       </div>
     </header>
