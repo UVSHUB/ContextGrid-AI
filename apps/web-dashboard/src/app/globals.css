@@ -22,44 +22,35 @@ html, body {
   overflow-x: hidden;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Linear / Stripe Style Glassmorphic Light Panel */
-.glass-panel {
-  background: rgba(255, 255, 255, 0.92) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid #E2E8F0 !important;
-  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.03), 0 2px 4px -2px rgba(15, 23, 42, 0.02);
-}
-
-.glass-panel-hover {
-  transition: all 0.2s ease-in-out;
-}
-
-.glass-panel-hover:hover {
-  border-color: #CBD5E1 !important;
-  box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.08), 0 8px 10px -6px rgba(79, 70, 229, 0.04);
-}
-
-/* React Flow Light Dots Pattern */
-.react-flow__background {
-  background-color: #F8FAFC !important;
-}
-
-/* Clean Header & Navigation Styling */
+/* Fallback CSS Layout Rules for Enterprise Light Theme */
 header {
   background-color: rgba(255, 255, 255, 0.95) !important;
   border-bottom: 1px solid #E2E8F0 !important;
+  position: sticky;
+  top: 0;
+  z-index: 40;
 }
 
 main {
   background-color: #F8FAFC !important;
+  max-width: 80rem;
+  margin: 0 auto;
+  padding: 1.5rem;
 }
 
 button {
   cursor: pointer;
+  border-radius: 0.75rem;
+}
+
+/* Glassmorphism Light Card */
+.glass-panel {
+  background-color: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.03), 0 2px 4px -2px rgba(15, 23, 42, 0.02) !important;
+  border-radius: 1rem;
 }
 
 /* Custom Pro Scrollbar */
